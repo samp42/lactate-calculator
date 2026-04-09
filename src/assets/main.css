@@ -9,10 +9,29 @@
 @import "tw-animate-css";
 
 #app {
+  width: 100vw;
+}
+
+#main {
   max-width: 1280px;
   margin: 0 auto;
   padding: 2rem;
   font-weight: normal;
+}
+
+h1 {
+  font-weight: 800;
+  font-size: xx-large;
+}
+
+h2 {
+  font-weight: 700;
+  font-size: x-large;
+}
+
+h3 {
+  font-weight: 600;
+  font-size: large;
 }
 
 a,
@@ -29,7 +48,7 @@ a,
     place-items: center;
   }
 
-  #app {
+  #main {
     /* display: grid; */
     /* grid-template-columns: 1fr 1fr; */
     padding: 0 2rem;
@@ -111,7 +130,7 @@ a,
   --sidebar-ring: oklch(0.708 0 0);
 }
 
-/* .dark {
+.dark {
   --background: oklch(0.145 0 0);
   --foreground: oklch(0.985 0 0);
   --card: oklch(0.205 0 0);
@@ -143,7 +162,7 @@ a,
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.556 0 0);
-} */
+}
 
 @layer base {
   * {
