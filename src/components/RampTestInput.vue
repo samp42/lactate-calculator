@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch, type Ref } from 'vue';
+
 import {
   Table,
   TableCaption,
@@ -12,35 +12,25 @@ import {
 import { Input } from './ui/input';
 import { Button } from './ui/button';
 import { XIcon } from 'lucide-vue-next';
+import type { RampTest, RampTestStage } from '@/lib/models';
 
+const props = defineProps<{
+  modelValue: RampTest
+}>()
 
-interface RampTestStage {
-  num: number,
-  power: number | null,
-  duration: number | null,
-  lactate: number | null
+const emit = defineEmits<{
+  'update:modelValue': [data: RampTest]
+}>()
+
+function updateStageField(stageIndex: number, field: keyof RampTestStage, value: any) {
+  const newStages = [...props.modelValue.stages];
+  newStages[stageIndex] = { ...newStages[stageIndex], [field]: value };
+  emit('update:modelValue', { stages: newStages });
 }
 
-interface RampTest {
-  stages: Array<RampTestStage>
-}
-
-const ramp_test: Ref<RampTest> = ref({ stages: [{ num: 1, power: null, duration: null, lactate: null }] })
-
-function addStage() {
-  const lastStage = ramp_test.value.stages[ramp_test.value.stages.length - 1];
-
-  ramp_test.value.stages = [...ramp_test.value.stages, { num: lastStage!.num + 1, power: null, duration: lastStage!.duration, lactate: null }];
-}
-
-// watch(ramp_test, (newValue) => {
-//   console.log(newValue.stages)
-// }, { deep: true })
-
-defineExpose(addStage)
-
-function deleteStage() {
-  // TODO
+function deleteStage(stageIndex: number) {
+  const newStages = props.modelValue.stages.filter((_, index) => index !== stageIndex);
+  emit('update:modelValue', { stages: newStages });
 }
 
 </script>
@@ -71,14 +61,20 @@ function deleteStage() {
         </TableRow>
       </TableHeader>
       <TableBody>
-        <TableRow v-for="stage in ramp_test.stages" :key='stage.num'>
+        <TableRow v-for="(stage, index) in props.modelValue.stages" :key='stage.num'>
           <TableCell>
             <h3>{{ stage.num }}</h3>
           </TableCell>
-          <TableCell><Input type="number" placeholder='Power' v-model.number='stage.power' /></TableCell>
-          <TableCell><Input type="number" placeholder='Duration' v-model.number='stage.duration' /></TableCell>
-          <TableCell><Input type="number" placeholder='Lactate' v-model.number='stage.lactate' /></TableCell>
-          <TableCell><Button @click='deleteStage'>
+          <TableCell><Input type="number" placeholder='Power' :model-value="stage.power"
+              @update:model-value="updateStageField(index, 'power', $event)" />
+          </TableCell>
+          <TableCell><Input type="number" placeholder='Duration' :model-value="stage.duration"
+              @update:model-value="updateStageField(index, 'duration', $event)" />
+          </TableCell>
+          <TableCell><Input type="number" placeholder='Lactate' :model-value="stage.lactate"
+              @update:model-value="updateStageField(index, 'lactate', $event)" />
+          </TableCell>
+          <TableCell><Button @click='deleteStage(index)'>
               <XIcon class='text-red-400' />
             </Button></TableCell>
         </TableRow>
@@ -87,8 +83,4 @@ function deleteStage() {
   </div>
 </template>
 
-<style lang="css" scoped>
-.table-head {
-  color: var(--color-text)
-}
-</style>
+<style lang="css" scoped></style>

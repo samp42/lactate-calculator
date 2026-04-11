@@ -4,8 +4,22 @@ import InfoContent from '@/components/InfoContent.vue';
 import Header from './components/Header.vue';
 import RampTestInput from './components/RampTestInput.vue';
 import { PlusIcon } from 'lucide-vue-next';
-import { ref } from 'vue';
+import { ref, type Ref } from 'vue';
+import { Button } from './components/ui/button';
+import type { RampTest } from '@/lib/models'
+import ResultsData from './components/ResultsData.vue';
 
+const ramp_test: Ref<RampTest> = ref({ stages: [{ num: 1, power: null, duration: null, lactate: null }] })
+
+function addStage() {
+  if (ramp_test.value.stages.length > 0) {
+    const lastStage = ramp_test.value.stages[ramp_test.value.stages.length - 1];
+
+    ramp_test.value.stages = [...ramp_test.value.stages, { num: lastStage!.num + 1, power: null, duration: lastStage!.duration, lactate: null }];
+  } else {
+    ramp_test.value.stages = [{ num: 1, power: null, duration: null, lactate: null }];
+  }
+}
 
 const addStageRef = ref(null);
 </script>
@@ -28,16 +42,22 @@ const addStageRef = ref(null);
       </TabsList>
       <TabsContent value="data-input">
         <div class='flex justify-between'>
-          <h2>Ramp test input</h2>
-          <Button @click='addStageRef' class='flex'>
+          <Button @click='addStage' class='flex'>
             <h3 class='pr-2'>Add Stage</h3>
             <PlusIcon />
           </Button>
         </div>
         <!-- <RampDataInput /> -->
-        <RampTestInput ref='addStageRef' />
+        <RampTestInput :modelValue="ramp_test" @update:modelValue="ramp_test = $event" ref="addStageRef" />
+        <div>
+          <Button @click='console.log("redirect")'>Go to Results</Button>
+        </div>
       </TabsContent>
-      <TabsContent value="results"> Results </TabsContent>
+      <TabsContent value="results">
+        <div>
+          <ResultsData :ramp_test="ramp_test" />
+        </div>
+      </TabsContent>
     </Tabs>
 
     <InfoContent></InfoContent>
