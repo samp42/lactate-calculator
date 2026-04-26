@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Card, CardContent, CardHeader } from './ui/card';
+import { Card, CardContent, CardHeader } from './ui/card'
 import {
   Table,
   TableCaption,
@@ -8,13 +8,12 @@ import {
   TableHead,
   TableRow,
   TableBody,
-} from './ui/table';
-import type { TrainingZone } from '@/lib/models';
+} from './ui/table'
+import type { TrainingZone } from '@/lib/models'
 
 const power_zones: Array<TrainingZone> = [
-  { number: 1, description: 'easy', min: null, max: 160, min_percent: null, max_percent: 55 }
+  { number: 1, description: 'easy', min: null, max: 160, min_percent: null, max_percent: 55 },
 ]
-
 </script>
 
 <template>
@@ -32,7 +31,7 @@ const power_zones: Array<TrainingZone> = [
           <TableHead>Percent</TableHead>
         </TableHeader>
         <TableBody>
-          <TableRow v-for='zone in power_zones' :key='zone.number'>
+          <TableRow v-for="zone in power_zones" :key="zone.number">
             <TableCell>{{ zone.number }}</TableCell>
             <TableCell>{{ zone.description }}</TableCell>
             <TableCell>{{ zone.min }} - {{ zone.max }}</TableCell>

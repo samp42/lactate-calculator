@@ -1,29 +1,44 @@
 <script setup lang="ts">
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import InfoContent from '@/components/InfoContent.vue';
-import Header from './components/Header.vue';
-import RampTestInput from './components/RampTestInput.vue';
-import { ref, watch, type Ref } from 'vue';
-import { Button } from '@/components/ui/button';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
+import InfoContent from '@/components/InfoContent.vue'
+import Header from './components/Header.vue'
+import RampTestInput from './components/RampTestInput.vue'
+import { ref, watch, type Ref } from 'vue'
+import { Button } from '@/components/ui/button'
 import type { RampTest } from '@/lib/models'
-import ResultsData from './components/ResultsData.vue';
-import AthleteDataInput from './components/AthleteDataInput.vue';
+import ResultsData from './components/ResultsData.vue'
+import AthleteDataInput from './components/AthleteDataInput.vue'
 
-const ramp_test: Ref<RampTest> = ref({ name: null, weight: null, stages: [{ num: 1, power: null, duration: null, lactate: null, heart_rate: null }] })
+const ramp_test: Ref<RampTest> = ref({
+  name: null,
+  weight: null,
+  stages: [{ num: 1, power: null, duration: null, lactate: null, heart_rate: null }],
+})
 
 function addStage() {
   if (ramp_test.value.stages.length > 0) {
-    const lastStage = ramp_test.value.stages[ramp_test.value.stages.length - 1];
+    const lastStage = ramp_test.value.stages[ramp_test.value.stages.length - 1]
 
-    ramp_test.value.stages = [...ramp_test.value.stages, { num: lastStage!.num + 1, power: null, duration: lastStage!.duration, lactate: null, heart_rate: null }];
+    ramp_test.value.stages = [
+      ...ramp_test.value.stages,
+      {
+        num: lastStage!.num + 1,
+        power: null,
+        duration: lastStage!.duration,
+        lactate: null,
+        heart_rate: null,
+      },
+    ]
   } else {
-    ramp_test.value.stages = [{ num: 1, power: null, duration: null, lactate: null, heart_rate: null }];
+    ramp_test.value.stages = [
+      { num: 1, power: null, duration: null, lactate: null, heart_rate: null },
+    ]
   }
 }
 
 watch(ramp_test, () => console.log(JSON.stringify(ramp_test.value)))
 
-const addStageRef = ref(null);
+const addStageRef = ref(null)
 </script>
 
 <template>
@@ -32,8 +47,8 @@ const addStageRef = ref(null);
 
     <div id="main">
       <div class="flex w-full">
-        <Tabs default-value="data-input">
-          <TabsList>
+        <Tabs default-value="data-input" class='flex w-full'>
+          <TabsList class='mb-8'>
             <TabsTrigger value="data-input">
               <h3>Ramp Test Input</h3>
             </TabsTrigger>
@@ -41,9 +56,9 @@ const addStageRef = ref(null);
               <h3>Results & Calculations</h3>
             </TabsTrigger>
           </TabsList>
-          <TabsContent value="data-input">
+          <TabsContent value="data-input" style='margin-top: 24px;'>
             <!-- <RampDataInput /> -->
-            <div class="pb-10px">
+            <div class='pb-8'>
               <AthleteDataInput :modelValue="ramp_test" @update:modelValue="ramp_test = $event" />
             </div>
             <RampTestInput :modelValue="ramp_test" @update:modelValue="ramp_test = $event" ref="addStageRef" />
@@ -51,7 +66,7 @@ const addStageRef = ref(null);
               <Button @click="console.log('redirect')">Go to Results</Button>
             </div>
           </TabsContent>
-          <TabsContent value="results">
+          <TabsContent value="results" style='margin-top: 24px;'>
             <div>
               <ResultsData :ramp_test="ramp_test" />
             </div>

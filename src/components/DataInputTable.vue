@@ -1,17 +1,17 @@
 <script setup lang="ts">
-import { ref } from 'vue';
-import DataInputTableRow from './DataInputTableRow.vue';
+import { ref } from 'vue'
+import DataInputTableRow from './DataInputTableRow.vue'
 
 // Reactive array to hold stages
-const stages = ref<number[]>([1]);
+const stages = ref<number[]>([1])
 
 function addRow() {
-  const last = stages.value[stages.value.length - 1] ?? 0;
-  stages.value.push(last + 1);
+  const last = stages.value[stages.value.length - 1] ?? 0
+  stages.value.push(last + 1)
 }
 
 function deleteRow(stage: number) {
-  stages.value = stages.value.filter((s) => s !== stage);
+  stages.value = stages.value.filter((s) => s !== stage)
 }
 </script>
 

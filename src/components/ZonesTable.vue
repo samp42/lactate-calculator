@@ -7,9 +7,7 @@ import {
   TableHead,
   TableRow,
   TableBody,
-} from './ui/table';
-
-
+} from './ui/table'
 </script>
 
 <template>
