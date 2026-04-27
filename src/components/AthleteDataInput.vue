@@ -41,7 +41,7 @@ function updateAthleteWeight(newWeight: number) {
       />
       <Input
         type="number"
-        placeholder="Rider Weight"
+        placeholder="Rider Weight (kg)"
         :model-value="props.modelValue.weight"
         @update:model-value="updateAthleteWeight"
         class="w-60"

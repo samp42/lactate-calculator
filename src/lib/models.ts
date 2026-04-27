@@ -22,7 +22,7 @@ export interface TrainingZone {
 }
 
 export interface Thresholds {
-  method: ZoneCalculationMethods | null
+  method: ThresholdCalculationMethods | null
   lt1_power: number | null
   lt1_heart_rate: number | null
   lt2_power: number | null
@@ -34,11 +34,11 @@ export interface KeyMetrics {
   athlete_weight: number | null
   max_hr: number | null
   thresholds: Thresholds
+  power_zones: Array<TrainingZone>
+  heart_rate_zones: Array<TrainingZone>
 }
 
-// export interface ZoneModels
-
-export enum ZoneCalculationMethods {
+export enum ThresholdCalculationMethods {
   DMAX = 'Dmax', // The original Dmax method as described by Cheng et al. (1992)
   MODIFIED_DMAX = 'Modified Dmax', // First point of distance line is the point before the first increase of >0.4 mmol/L
   LOG_LOG_DMAX = 'Log-Log Dmax',
@@ -47,4 +47,10 @@ export enum ZoneCalculationMethods {
   FIXED_LACTATE_THRESHOLDS = 'Fixed Lactate Thresholds', // LT1 = 2 mmol/L, LT2 = 4 mmol/L
   LOG_LOG_LT = 'Log-Log LT',
   BASELINE_0_5 = 'Baseline + 0.5', // LT1 = baseline + 0.5 mmol/L, LT2 = baseline + 1.5 mmol/L
+}
+
+export enum ZoneModels {
+  THREE_ZONES = '3 Zones',
+  FIVE_ZONES = '5 Zones',
+  SEVEN_ZONES = '7 Zones',
 }

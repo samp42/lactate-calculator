@@ -13,13 +13,13 @@ function toggleTheme() {
   <div class="header-div px-8 py-2">
     <h1>Lactate Test Calculator</h1>
 
-    <div class="flex">
+    <!-- <div class="flex">
       <p>{{ theme }}</p>
       <Button class="flex" @click="toggleTheme">
         <MoonIcon v-if="theme === 'light'" />
         <SunIcon v-if="theme === 'dark'" />
       </Button>
-    </div>
+    </div> -->
   </div>
 </template>
 

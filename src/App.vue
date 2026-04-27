@@ -47,8 +47,8 @@ const addStageRef = ref(null)
 
     <div id="main">
       <div class="flex w-full">
-        <Tabs default-value="data-input" class='flex w-full'>
-          <TabsList class='mb-8'>
+        <Tabs default-value="data-input" class="flex w-full">
+          <TabsList class="mb-8 m-auto w-full">
             <TabsTrigger value="data-input">
               <h3>Ramp Test Input</h3>
             </TabsTrigger>
@@ -56,17 +56,21 @@ const addStageRef = ref(null)
               <h3>Results & Calculations</h3>
             </TabsTrigger>
           </TabsList>
-          <TabsContent value="data-input" style='margin-top: 24px;'>
+          <TabsContent value="data-input" style="margin-top: 24px">
             <!-- <RampDataInput /> -->
-            <div class='pb-8'>
+            <div class="pb-8">
               <AthleteDataInput :modelValue="ramp_test" @update:modelValue="ramp_test = $event" />
             </div>
-            <RampTestInput :modelValue="ramp_test" @update:modelValue="ramp_test = $event" ref="addStageRef" />
+            <RampTestInput
+              :modelValue="ramp_test"
+              @update:modelValue="ramp_test = $event"
+              ref="addStageRef"
+            />
             <div>
               <Button @click="console.log('redirect')">Go to Results</Button>
             </div>
           </TabsContent>
-          <TabsContent value="results" style='margin-top: 24px;'>
+          <TabsContent value="results" style="margin-top: 24px">
             <div>
               <ResultsData :ramp_test="ramp_test" />
             </div>

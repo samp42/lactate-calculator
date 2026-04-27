@@ -16,7 +16,11 @@ export function polynomial_regression(x: number[], y: number[], degree: 2 | 3 | 
   return coefficients
 }
 
-export function discretize(x_min: number, x_max: number, coef: number[]): { x: number[]; y: number[] } {
+export function discretize(
+  x_min: number,
+  x_max: number,
+  coef: number[],
+): { x: number[]; y: number[] } {
   const x: number[] = Array.from({ length: x_max - x_min + 1 }, (_, i) => x_min + i)
   const y: number[] = x.map((val) => {
     return coef.reduce((sum, coeff, i) => sum + coeff * Math.pow(val, i), 0)

@@ -1,9 +1,5 @@
 <script setup lang="ts">
-import {
-  Card,
-  CardHeader,
-  CardContent
-} from './ui/card'
+import { Card, CardHeader, CardContent } from './ui/card'
 
 import {
   Table,
@@ -29,7 +25,9 @@ const props = defineProps<{
       </CardHeader>
       <CardContent>
         <Table>
-          <TableCaption>Ramp Test Results {{ props.ramp_test.name !== null ? 'for ' + props.ramp_test.name : '' }}
+          <TableCaption
+            >Ramp Test Results
+            {{ props.ramp_test.name !== null ? 'for ' + props.ramp_test.name : '' }}
           </TableCaption>
           <TableHeader>
             <TableRow>
@@ -60,7 +58,6 @@ const props = defineProps<{
             </TableRow>
           </TableBody>
         </Table>
-
       </CardContent>
     </Card>
   </div>
