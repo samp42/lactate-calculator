@@ -1,17 +1,18 @@
 <script setup lang="ts">
-import { MoonIcon, SunIcon } from 'lucide-vue-next'
-import { ref } from 'vue'
+import { MoonIcon, SunIcon } from 'lucide-vue-next';
+import { ref } from 'vue';
 
-const theme = ref('dark')
+const theme = ref('dark');
 
 function toggleTheme() {
-  theme.value = theme.value === 'light' ? 'dark' : 'light'
+  theme.value = theme.value === 'light' ? 'dark' : 'light';
 }
 </script>
 
 <template>
-  <div class="header-div px-8 py-2">
-    <h1>Lactate Test Calculator</h1>
+  <div class="header-div px-8 py-2 bg-black flex items-center">
+    <img src="@/assets/ToguriLogo.webp" alt="Toguri Logo" class="h-12 pr-4" />
+    <h1 class="text-white text-2xl font-bold">Lactate Test Calculator</h1>
 
     <!-- <div class="flex">
       <p>{{ theme }}</p>
@@ -29,6 +30,5 @@ function toggleTheme() {
   top: 0;
   width: 100%;
   display: flex;
-  justify-content: space-between;
 }
 </style>

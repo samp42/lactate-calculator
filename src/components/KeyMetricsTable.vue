@@ -4,11 +4,16 @@ import {
   Table,
   TableCaption,
   TableCell,
-  TableHeader,
-  TableHead,
   TableRow,
   TableBody,
 } from './ui/table'
+
+import type { KeyMetrics } from '@/lib/models'
+
+const props = defineProps<{
+  key_metrics: KeyMetrics
+}>()
+
 </script>
 
 <template>
@@ -34,13 +39,13 @@ import {
             <TableCell>
               <h3>Athlete Weight</h3>
             </TableCell>
-            <TableCell class="table-cell">61 kg</TableCell>
+            <TableCell class="table-cell">{{ props.key_metrics.athlete_weight }} kg</TableCell>
           </TableRow>
           <TableRow>
             <TableCell>
               <h3>Max Heart Rate</h3>
             </TableCell>
-            <TableCell class="table-cell">186 BPM</TableCell>
+            <TableCell class="table-cell">{{ props.key_metrics.max_hr }} BPM</TableCell>
           </TableRow>
           <TableRow>
             <TableCell>
@@ -65,6 +70,12 @@ import {
               <h3>LT2 Heart Rate</h3>
             </TableCell>
             <TableCell class="table-cell">174 BPM - 93% of Max</TableCell>
+          </TableRow>
+          <TableRow>
+            <TableCell>
+              <h3>Functional Threshold Power</h3>
+            </TableCell>
+            <TableCell class="table-cell">280 W</TableCell>
           </TableRow>
           <TableRow>
             <TableCell>

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { Card, CardContent, CardHeader } from './ui/card'
 import { computed } from 'vue'
 import type { RampTest } from '@/lib/models'
 
@@ -122,104 +123,65 @@ const yTicks = computed(() => {
 </script>
 
 <template>
-  <div class="data-curve">
-    <svg viewBox="0 0 720 360" class="data-curve__svg" preserveAspectRatio="xMidYMid meet">
-      <rect x="0" y="0" width="720" height="360" rx="18" fill="var(--card)" />
+  <Card>
+    <CardHeader>
+      <h2>Results Curve</h2>
+    </CardHeader>
+    <CardContent>
+      <div class="data-curve">
+        <svg viewBox="0 0 720 360" class="data-curve__svg" preserveAspectRatio="xMidYMid meet">
+          <rect x="0" y="0" width="720" height="360" rx="18" fill="var(--card)" />
 
-      <g class="grid-lines">
-        <g v-for="value in yTicks" :key="`y-${value}`">
-          <line
-            :x1="margin.left"
-            :x2="margin.left + innerWidth"
-            :y1="yScale(value)"
-            :y2="yScale(value)"
-            class="grid-line"
-          />
-        </g>
-        <g v-for="value in xTicks" :key="`x-${value}`">
-          <line
-            :x1="xScale(value)"
-            :x2="xScale(value)"
-            :y1="margin.top"
-            :y2="margin.top + innerHeight"
-            class="grid-line"
-          />
-        </g>
-      </g>
+          <g class="grid-lines">
+            <g v-for="value in yTicks" :key="`y-${value}`">
+              <line :x1="margin.left" :x2="margin.left + innerWidth" :y1="yScale(value)" :y2="yScale(value)"
+                class="grid-line" />
+            </g>
+            <g v-for="value in xTicks" :key="`x-${value}`">
+              <line :x1="xScale(value)" :x2="xScale(value)" :y1="margin.top" :y2="margin.top + innerHeight"
+                class="grid-line" />
+            </g>
+          </g>
 
-      <path v-if="linePath" :d="linePath" class="data-curve__line" />
+          <path v-if="linePath" :d="linePath" class="data-curve__line" />
 
-      <g class="points">
-        <g v-for="point in points" :key="point.num" class="data-curve__point-group">
-          <circle
-            :cx="xScale(point.power)"
-            :cy="yScale(point.lactate)"
-            r="5"
-            class="data-curve__point"
-          />
-          <text
-            :x="xScale(point.power) + 8"
-            :y="yScale(point.lactate) - 8"
-            class="data-curve__point-label"
-          >
-            {{ point.num }}
+          <g class="points">
+            <g v-for="point in points" :key="point.num" class="data-curve__point-group">
+              <circle :cx="xScale(point.power)" :cy="yScale(point.lactate)" r="5" class="data-curve__point" />
+              <text :x="xScale(point.power) + 8" :y="yScale(point.lactate) - 8" class="data-curve__point-label">
+                {{ point.num }}
+              </text>
+            </g>
+          </g>
+
+          <line :x1="margin.left" :y1="margin.top + innerHeight" :x2="margin.left + innerWidth"
+            :y2="margin.top + innerHeight" class="axis" />
+          <line :x1="margin.left" :y1="margin.top" :x2="margin.left" :y2="margin.top + innerHeight" class="axis" />
+
+          <g class="ticks">
+            <g v-for="value in xTicks" :key="`tick-x-${value}`">
+              <line :x1="xScale(value)" :x2="xScale(value)" :y1="margin.top + innerHeight"
+                :y2="margin.top + innerHeight + 6" class="tick" />
+              <text :x="xScale(value)" :y="margin.top + innerHeight + 20" class="tick-label" text-anchor="middle">
+                {{ value }}
+              </text>
+            </g>
+            <g v-for="value in yTicks" :key="`tick-y-${value}`">
+              <line :x1="margin.left - 6" :x2="margin.left" :y1="yScale(value)" :y2="yScale(value)" class="tick" />
+              <text :x="margin.left - 10" :y="yScale(value) + 4" class="tick-label" text-anchor="end">
+                {{ value }}
+              </text>
+            </g>
+          </g>
+
+          <text x="360" y="352" class="axis-label" text-anchor="middle">Power (W)</text>
+          <text x="16" y="190" class="axis-label axis-label--vertical" text-anchor="middle">
+            Lactate (mmol/L)
           </text>
-        </g>
-      </g>
-
-      <line
-        :x1="margin.left"
-        :y1="margin.top + innerHeight"
-        :x2="margin.left + innerWidth"
-        :y2="margin.top + innerHeight"
-        class="axis"
-      />
-      <line
-        :x1="margin.left"
-        :y1="margin.top"
-        :x2="margin.left"
-        :y2="margin.top + innerHeight"
-        class="axis"
-      />
-
-      <g class="ticks">
-        <g v-for="value in xTicks" :key="`tick-x-${value}`">
-          <line
-            :x1="xScale(value)"
-            :x2="xScale(value)"
-            :y1="margin.top + innerHeight"
-            :y2="margin.top + innerHeight + 6"
-            class="tick"
-          />
-          <text
-            :x="xScale(value)"
-            :y="margin.top + innerHeight + 20"
-            class="tick-label"
-            text-anchor="middle"
-          >
-            {{ value }}
-          </text>
-        </g>
-        <g v-for="value in yTicks" :key="`tick-y-${value}`">
-          <line
-            :x1="margin.left - 6"
-            :x2="margin.left"
-            :y1="yScale(value)"
-            :y2="yScale(value)"
-            class="tick"
-          />
-          <text :x="margin.left - 10" :y="yScale(value) + 4" class="tick-label" text-anchor="end">
-            {{ value }}
-          </text>
-        </g>
-      </g>
-
-      <text x="360" y="352" class="axis-label" text-anchor="middle">Power (W)</text>
-      <text x="16" y="190" class="axis-label axis-label--vertical" text-anchor="middle">
-        Lactate (mmol/L)
-      </text>
-    </svg>
-  </div>
+        </svg>
+      </div>
+    </CardContent>
+  </Card>
 </template>
 
 <style scoped>

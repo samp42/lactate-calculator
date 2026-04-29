@@ -18,7 +18,7 @@ import {
   ZoneModels,
 } from '@/lib/models'
 import { DownloadIcon } from 'lucide-vue-next'
-import DataAnalysis from './DataAnalysis.vue'
+import KeyMetricsTable from './KeyMetricsTable.vue'
 import DataCurve from './DataCurve.vue'
 import ZoneTable from './ZoneTable.vue'
 import { calculateThresholds, calculateZones } from '@/lib/science'
@@ -38,9 +38,9 @@ function hasEnoughPoints(ramp_test: RampTest): boolean {
 const key_metrics = computed<KeyMetrics>(() => {
   if (!hasEnoughPoints(props.ramp_test)) {
     return {
-      athlete_name: null,
-      athlete_weight: null,
-      max_hr: null,
+      athlete_name: props.ramp_test.name,
+      athlete_weight: props.ramp_test.weight,
+      max_hr: props.ramp_test.stages.length > 0 ? Math.max(...props.ramp_test.stages.map((s) => s.heart_rate ?? 0)) : null,
       thresholds: {
         method: null,
         lt1_power: null,
@@ -83,7 +83,7 @@ const selected_zone_model: Ref<ZoneModels> = ref(ZoneModels.FIVE_ZONES)
 
     <div class="pb-8">
       <div class="flex justify-between pb-1">
-        <h2>Power & Lactate Curve</h2>
+        <h2>Results Curve</h2>
         <Select v-model="selected_method">
           <SelectTrigger class="w-60">
             <SelectValue placeholder="Select a calculation method" />
@@ -148,7 +148,7 @@ const selected_zone_model: Ref<ZoneModels> = ref(ZoneModels.FIVE_ZONES)
       <ZoneTable type="heart_rate" :zones="key_metrics.heart_rate_zones" class="flex-1" />
     </div>
     <h2>Calculated Data</h2>
-    <DataAnalysis :key_metrics="key_metrics" />
+    <KeyMetricsTable :key_metrics="key_metrics" />
   </div>
   <div v-else class="flex justify-center">
     <p class="font-black text-center" style="font-size: x-large; font-weight: bold">

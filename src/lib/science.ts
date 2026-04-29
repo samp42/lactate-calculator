@@ -137,39 +137,39 @@ export function calculateZones(
         {
           number: 1,
           description: 'Zone 1',
-          min: 0.5 * max_hr,
-          max: 0.6 * max_hr,
+          min: Math.round(0.5 * max_hr),
+          max: Math.round(0.6 * max_hr),
           min_percent: 50,
           max_percent: 60,
         },
         {
           number: 2,
           description: 'Zone 2',
-          min: 0.6 * max_hr,
-          max: 0.7 * max_hr,
+          min: Math.round(0.6 * max_hr),
+          max: Math.round(0.7 * max_hr),
           min_percent: 60,
           max_percent: 70,
         },
         {
           number: 3,
           description: 'Zone 3',
-          min: 0.7 * max_hr,
-          max: 0.8 * max_hr,
+          min: Math.round(0.7 * max_hr),
+          max: Math.round(0.8 * max_hr),
           min_percent: 70,
           max_percent: 80,
         },
         {
           number: 4,
           description: 'Zone 4',
-          min: 0.8 * max_hr,
-          max: 0.9 * max_hr,
+          min: Math.round(0.8 * max_hr),
+          max: Math.round(0.9 * max_hr),
           min_percent: 80,
           max_percent: 90,
         },
         {
           number: 5,
           description: 'Zone 5',
-          min: 0.9 * max_hr,
+          min: Math.round(0.9 * max_hr),
           max: max_hr,
           min_percent: 90,
           max_percent: 100,
@@ -181,7 +181,71 @@ export function calculateZones(
         heart_rate_zones: hr_zones,
       }
     case ZoneModels.SEVEN_ZONES:
-      break
+      const ftp = 0.75 * calculatePeakOneMinutePower(test)
+
+      const power_zones: Array<TrainingZone> = [
+        {
+          number: 1,
+          description: 'Active Recovery',
+          min: 0,
+          max: Math.round(0.55 * ftp),
+          min_percent: 0,
+          max_percent: 55,
+        },
+        {
+          number: 2,
+          description: 'Endurance',
+          min: Math.round(0.55 * ftp),
+          max: Math.round(0.75 * ftp),
+          min_percent: 55,
+          max_percent: 75,
+        },
+        {
+          number: 3,
+          description: 'Tempo',
+          min: Math.round(0.75 * ftp),
+          max: Math.round(0.87 * ftp),
+          min_percent: 75,
+          max_percent: 87,
+        },
+        {
+          number: 4,
+          description: 'Sweet Spot',
+          min: Math.round(0.87 * ftp),
+          max: Math.round(0.94 * ftp),
+          min_percent: 87,
+          max_percent: 94,
+        },
+        {
+          number: 5,
+          description: 'Threshold',
+          min: Math.round(0.94 * ftp),
+          max: Math.round(1.05 * ftp),
+          min_percent: 94,
+          max_percent: 105,
+        },
+        {
+          number: 6,
+          description: 'VO2 Max',
+          min: Math.round(1.05 * ftp),
+          max: Math.round(1.2 * ftp),
+          min_percent: 105,
+          max_percent: 120,
+        },
+        {
+          number: 7,
+          description: 'Anaerobic Capacity',
+          min: Math.round(1.2 * ftp),
+          max: Infinity,
+          min_percent: 120,
+          max_percent: Infinity,
+        },
+      ];
+
+      return {
+        power_zones: power_zones,
+        heart_rate_zones: [],
+      }
     default:
       throw Error('Unknown zone model')
   }
@@ -200,6 +264,28 @@ export function calculateKeyMetrics(
     athlete_name: test.athlete_name,
     athlete_weight: test.athlete_weight,
     max_hr: Math.max(...test.stages.map((s) => s.heart_rate)),
+    ftp: Math.round(0.75 * calculatePeakOneMinutePower(test)),
     thresholds: calculateThresholds(test, method),
   }
+}
+
+export function calculatePeakOneMinutePower(test: RampTest): number {
+  let one_minute = 60;
+  let peak_power = 0;
+
+  // stages descending
+  const stages = test.stages.filter(s => !!s.power && !!s.duration)
+  let i = stages.length - 1;
+  while (one_minute > 0 && i >= 0) {
+    if (stages[i]?.duration >= 60) {
+      return stages[i]?.power;
+    }
+    const duration = stages[i]?.duration;
+    peak_power += stages[i]?.power * (duration / (60 - duration))
+
+    one_minute -= duration;
+    i -= 1;
+  }
+
+  return peak_power;
 }

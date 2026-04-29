@@ -33,6 +33,8 @@ export interface KeyMetrics {
   athlete_name: string | null
   athlete_weight: number | null
   max_hr: number | null
+  ftp: number | null,
+  map: number | null,
   thresholds: Thresholds
   power_zones: Array<TrainingZone>
   heart_rate_zones: Array<TrainingZone>

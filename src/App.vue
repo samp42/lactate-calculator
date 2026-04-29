@@ -61,11 +61,7 @@ const addStageRef = ref(null)
             <div class="pb-8">
               <AthleteDataInput :modelValue="ramp_test" @update:modelValue="ramp_test = $event" />
             </div>
-            <RampTestInput
-              :modelValue="ramp_test"
-              @update:modelValue="ramp_test = $event"
-              ref="addStageRef"
-            />
+            <RampTestInput :modelValue="ramp_test" @update:modelValue="ramp_test = $event" ref="addStageRef" />
             <div>
               <Button @click="console.log('redirect')">Go to Results</Button>
             </div>
@@ -85,7 +81,7 @@ const addStageRef = ref(null)
 
 <style lang="css" scoped>
 #main {
-  margin-top: 80px;
+  margin-top: 120px;
 }
 
 /* .app {

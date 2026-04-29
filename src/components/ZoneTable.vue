@@ -35,10 +35,10 @@ const props = defineProps<{
           <TableRow v-for="zone in zones" :key="zone.number">
             <TableCell>{{ zone.number }}</TableCell>
             <TableCell>{{ zone.description }}</TableCell>
-            <TableCell
-              >{{ zone.min }} - {{ zone.max }} {{ props.type === 'power' ? 'W' : 'BPM' }}</TableCell
-            >
-            <TableCell>{{ zone.min_percent }} - {{ zone.max_percent }} %</TableCell>
+            <TableCell>{{ zone.min }} - {{ zone.max === Infinity ? '∞' : zone.max }} {{ props.type === 'power' ? 'W' :
+              'BPM' }}</TableCell>
+            <TableCell>{{ zone.min_percent }} - {{ zone.max_percent === Infinity ? '∞' : zone.max_percent }} %
+            </TableCell>
           </TableRow>
         </TableBody>
       </Table>
