@@ -48,7 +48,9 @@ export function calculateThresholds(
         coefficients,
       )
 
-      return {}
+      return {
+        method: ThresholdCalculationMethods.DMAX
+      }
     case ThresholdCalculationMethods.MODIFIED_DMAX:
       return {}
     case ThresholdCalculationMethods.LOG_LOG_DMAX:

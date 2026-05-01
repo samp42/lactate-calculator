@@ -14,6 +14,13 @@ const props = defineProps<{
   key_metrics: KeyMetrics
 }>()
 
+function getPercentage(a: number | null, b: number | null): number | null {
+  if (a && b) {
+    return Math.round(a / b);
+  }
+  return null
+}
+
 </script>
 
 <template>
@@ -69,7 +76,10 @@ const props = defineProps<{
             <TableCell>
               <h3>LT2 Heart Rate</h3>
             </TableCell>
-            <TableCell class="table-cell">174 BPM - 93% of Max</TableCell>
+            <TableCell class="table-cell">{{ props.key_metrics.thresholds.lt2_heart_rate }} BPM {{
+              getPercentage(props.key_metrics.thresholds.lt2_heart_rate, props.key_metrics.max_hr) ? '-' +
+                getPercentage(props.key_metrics.thresholds.lt2_heart_rate, props.key_metrics.max_hr) + '%' : '' }}
+            </TableCell>
           </TableRow>
           <TableRow>
             <TableCell>
@@ -100,6 +110,12 @@ const props = defineProps<{
               <h3>Fatmax Power</h3>
             </TableCell>
             <TableCell class="table-cell">192 W - 56% of MAP</TableCell>
+          </TableRow>
+          <TableRow>
+            <TableCell>
+              <h3>Lactate Treshold Calculation Method</h3>
+            </TableCell>
+            <TableCell class="table-cell">{{ props.key_metrics.thresholds.method }}</TableCell>
           </TableRow>
         </TableBody>
       </Table>
