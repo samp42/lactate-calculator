@@ -49,10 +49,16 @@ export function calculateThresholds(
       )
 
       return {
+        lt1_heart_rate: null,
+        lt1_power: null,
+        lt2_heart_rate: null,
+        lt2_power: null,
         method: ThresholdCalculationMethods.DMAX
       }
     case ThresholdCalculationMethods.MODIFIED_DMAX:
-      return {}
+      return {
+        method: ThresholdCalculationMethods.MODIFIED_DMAX
+      }
     case ThresholdCalculationMethods.LOG_LOG_DMAX:
       return {}
     case ThresholdCalculationMethods.POLYNOMIAL_CURVE_FITTING:

@@ -60,6 +60,7 @@ const key_metrics = computed<KeyMetrics>(() => {
     athlete_name: props.ramp_test.name,
     athlete_weight: props.ramp_test.weight,
     max_hr: Math.max(...props.ramp_test.stages.map((s) => s.heart_rate ?? 0)),
+    ppo: null,
     thresholds,
     power_zones: zones.power_zones,
     heart_rate_zones: zones.heart_rate_zones,
@@ -91,6 +92,9 @@ const selected_zone_model: Ref<ZoneModels> = ref(ZoneModels.FIVE_ZONES)
           <SelectContent>
             <SelectGroup>
               <SelectLabel>Methods</SelectLabel>
+              <SelectItem :value="ThresholdCalculationMethods.NONE">
+                {{ ThresholdCalculationMethods.NONE }}
+              </SelectItem>
               <SelectItem :value="ThresholdCalculationMethods.DMAX">
                 {{ ThresholdCalculationMethods.DMAX }}
               </SelectItem>

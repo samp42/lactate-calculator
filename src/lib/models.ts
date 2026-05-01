@@ -35,6 +35,9 @@ export interface KeyMetrics {
   max_hr: number | null
   ftp: number | null,
   map: number | null,
+  ppo: number | null,
+  vo2_max_absolute: number | null,
+  vo2_max_relative: number | null,
   thresholds: Thresholds
   power_zones: Array<TrainingZone>
   heart_rate_zones: Array<TrainingZone>
@@ -49,6 +52,7 @@ export enum ThresholdCalculationMethods {
   FIXED_LACTATE_THRESHOLDS = 'Fixed Lactate Thresholds', // LT1 = 2 mmol/L, LT2 = 4 mmol/L
   LOG_LOG_LT = 'Log-Log LT',
   BASELINE_0_5 = 'Baseline + 0.5', // LT1 = baseline + 0.5 mmol/L, LT2 = baseline + 1.5 mmol/L
+  NONE = 'None'
 }
 
 export enum ZoneModels {

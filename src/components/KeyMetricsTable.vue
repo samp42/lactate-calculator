@@ -42,13 +42,13 @@ function getPercentage(a: number | null, b: number | null): number | null {
           </TableRow>
         </TableHeader> -->
         <TableBody>
-          <TableRow>
+          <TableRow v-if='props.key_metrics.athlete_weight'>
             <TableCell>
               <h3>Athlete Weight</h3>
             </TableCell>
             <TableCell class="table-cell">{{ props.key_metrics.athlete_weight }} kg</TableCell>
           </TableRow>
-          <TableRow>
+          <TableRow v-if='props.key_metrics.max_hr'>
             <TableCell>
               <h3>Max Heart Rate</h3>
             </TableCell>
@@ -81,6 +81,12 @@ function getPercentage(a: number | null, b: number | null): number | null {
                 getPercentage(props.key_metrics.thresholds.lt2_heart_rate, props.key_metrics.max_hr) + '%' : '' }}
             </TableCell>
           </TableRow>
+          <TableRow v-if='props.key_metrics.ppo'>
+            <TableCell>
+              <h3>Peak One-Minute Power</h3>
+            </TableCell>
+            <TableCell class="table-cell">{{ props.key_metrics.ppo }} W</TableCell>
+          </TableRow>
           <TableRow>
             <TableCell>
               <h3>Functional Threshold Power</h3>
@@ -93,17 +99,19 @@ function getPercentage(a: number | null, b: number | null): number | null {
             </TableCell>
             <TableCell class="table-cell">343 W</TableCell>
           </TableRow>
-          <TableRow>
+          <TableRow v-if='!!props.key_metrics.vo2_max_absolute'>
             <TableCell>
               <h3>VO2 Max (Absolute)</h3>
             </TableCell>
-            <TableCell class="table-cell">4.35 L/min</TableCell>
+            <TableCell class="table-cell">{{ Math.round(props.key_metrics.vo2_max_absolute * 100) / 100 }} L/min
+            </TableCell>
           </TableRow>
-          <TableRow>
+          <TableRow v-if='props.key_metrics.vo2_max_relative'>
             <TableCell>
               <h3>VO2 Max (Relative)</h3>
             </TableCell>
-            <TableCell class="table-cell">71.3 ml/kg/min</TableCell>
+            <TableCell class="table-cell">{{ Math.round(props.key_metrics.vo2_max_relative * 100) / 100 }} ml/kg/min
+            </TableCell>
           </TableRow>
           <TableRow>
             <TableCell>
