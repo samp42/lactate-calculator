@@ -9,6 +9,12 @@ type Point = {
   lactate: number
 }
 
+type HeartRatePoint = {
+  num: number
+  power: number
+  heart_rate: number
+}
+
 type Bounds = [number, number]
 
 const props = defineProps<{
@@ -26,6 +32,27 @@ const points = computed<Point[]>(() =>
     .sort((a, b) => a.power - b.power),
 )
 
+const heartRatePoints = computed<HeartRatePoint[]>(() =>
+  props.ramp_test.stages
+    .filter((stage) => stage.power !== null && stage.heart_rate !== null)
+    .map((stage) => ({
+      num: stage.num,
+      power: stage.power as number,
+      heart_rate: stage.heart_rate as number,
+    }))
+    .sort((a, b) => a.power - b.power),
+)
+
+const allXValues = computed(() => [
+  ...points.value.map((point) => point.power),
+  ...heartRatePoints.value.map((point) => point.power),
+])
+
+const allYValues = computed(() => [
+  ...points.value.map((point) => point.lactate),
+  ...heartRatePoints.value.map((point) => point.heart_rate),
+])
+
 const chartWidth = 720
 const chartHeight = 360
 const margin = { top: 24, right: 24, bottom: 44, left: 56 }
@@ -33,24 +60,24 @@ const innerWidth = chartWidth - margin.left - margin.right
 const innerHeight = chartHeight - margin.top - margin.bottom
 
 const xDomain = computed<Bounds>(() => {
-  if (!points.value.length) {
+  if (!allXValues.value.length) {
     return [0, 100]
   }
 
-  const min = Math.min(...points.value.map((point) => point.power))
-  const max = Math.max(...points.value.map((point) => point.power))
+  const min = Math.min(...allXValues.value)
+  const max = Math.max(...allXValues.value)
   const padding = Math.max((max - min) * 0.08, 8)
 
   return [Math.max(0, min - padding), max + padding]
 })
 
 const yDomain = computed<Bounds>(() => {
-  if (!points.value.length) {
+  if (!allYValues.value.length) {
     return [0, 10]
   }
 
-  const min = Math.min(...points.value.map((point) => point.lactate))
-  const max = Math.max(...points.value.map((point) => point.lactate))
+  const min = Math.min(...allYValues.value)
+  const max = Math.max(...allYValues.value)
   const padding = Math.max((max - min) * 0.12, 0.5)
 
   return [Math.max(0, min - padding), max + padding]
@@ -73,7 +100,7 @@ const yScale = (value: number) => {
   return margin.top + innerHeight - ((value - yMin) / (yMax - yMin)) * innerHeight
 }
 
-const linePath = computed(() => {
+const lactateLinePath = computed(() => {
   if (!points.value.length) {
     return ''
   }
@@ -82,6 +109,20 @@ const linePath = computed(() => {
     .map((point, index) => {
       const x = xScale(point.power)
       const y = yScale(point.lactate)
+      return `${index === 0 ? 'M' : 'L'} ${x.toFixed(2)} ${y.toFixed(2)}`
+    })
+    .join(' ')
+})
+
+const heartRateLinePath = computed(() => {
+  if (!heartRatePoints.value.length) {
+    return ''
+  }
+
+  return heartRatePoints.value
+    .map((point, index) => {
+      const x = xScale(point.power)
+      const y = yScale(point.heart_rate)
       return `${index === 0 ? 'M' : 'L'} ${x.toFixed(2)} ${y.toFixed(2)}`
     })
     .join(' ')
@@ -143,7 +184,8 @@ const yTicks = computed(() => {
             </g>
           </g>
 
-          <path v-if="linePath" :d="linePath" class="data-curve__line" />
+          <path v-if="heartRateLinePath" :d="heartRateLinePath" class="data-curve__line data-curve__line--heart-rate" />
+          <path v-if="lactateLinePath" :d="lactateLinePath" class="data-curve__line data-curve__line--lactate" />
 
           <g class="points">
             <g v-for="point in points" :key="point.num" class="data-curve__point-group">
@@ -151,6 +193,19 @@ const yTicks = computed(() => {
               <text :x="xScale(point.power) + 8" :y="yScale(point.lactate) - 8" class="data-curve__point-label">
                 {{ point.num }}
               </text>
+            </g>
+          </g>
+
+          <g :transform="`translate(${margin.left + innerWidth - 154}, ${margin.top + innerHeight - 70})`"
+            class="data-curve__legend">
+            <rect x="0" y="0" width="150" height="54" rx="12" class="data-curve__legend-background" />
+            <g transform="translate(12, 18)">
+              <circle cx="0" cy="0" r="5" class="data-curve__legend-marker data-curve__legend-marker--lactate" />
+              <text x="14" y="4" class="data-curve__legend-label">Lactate</text>
+            </g>
+            <g transform="translate(12, 38)">
+              <circle cx="0" cy="0" r="5" class="data-curve__legend-marker data-curve__legend-marker--heart-rate" />
+              <text x="14" y="4" class="data-curve__legend-label">Heart Rate</text>
             </g>
           </g>
 
@@ -228,16 +283,59 @@ const yTicks = computed(() => {
 
 .data-curve__line {
   fill: none;
-  stroke: var(--color-chart-1);
   stroke-width: 3;
   stroke-linecap: round;
   stroke-linejoin: round;
+}
+
+.data-curve__line--lactate {
+  stroke: var(--foreground);
+}
+
+.data-curve__line--heart-rate {
+  stroke: #ef4444;
 }
 
 .data-curve__point {
   fill: var(--color-chart-2);
   stroke: var(--card-foreground);
   stroke-width: 1.5;
+}
+
+.data-curve__legend-background {
+  fill: var(--card);
+  stroke: var(--color-border);
+  stroke-width: 1;
+  opacity: 0.96;
+}
+
+.data-curve__legend-label,
+.data-curve__point-label,
+.axis-label,
+.tick-label {
+  fill: var(--foreground);
+}
+
+.data-curve__legend-label {
+  font-size: 12px;
+  font-weight: 600;
+  dominant-baseline: middle;
+  font-family:
+    Inter,
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    sans-serif;
+}
+
+.data-curve__legend-marker--lactate {
+  fill: var(--foreground);
+}
+
+.data-curve__legend-marker--heart-rate {
+  fill: #ef4444;
 }
 
 .data-curve__point-label {
