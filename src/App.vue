@@ -8,13 +8,13 @@ import { Button } from '@/components/ui/button'
 import type { RampTest } from '@/lib/models'
 import ResultsData from './components/ResultsData.vue'
 import AthleteDataInput from './components/AthleteDataInput.vue'
-import { getFirstEmptyStage } from './lib/models'
+import { getFirstEmptyStage, getFictiveStages } from './lib/models'
 
 const ramp_test: Ref<RampTest> = ref({
   name: null,
   weight: null,
   sport: 'cycling',
-  stages: getFirstEmptyStage(),
+  stages: getFictiveStages(), //getFirstEmptyStage(),
 })
 
 // function addStage() {

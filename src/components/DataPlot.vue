@@ -105,7 +105,7 @@ const renderPlot = () => {
   ]
 
   const layout = {
-    title: 'Lactate and Heart Rate vs Power',
+    title: 'Lactate and Heart Rate vs Power/Speed',
     xaxis: {
       title: 'Power (W)',
       zeroline: false,

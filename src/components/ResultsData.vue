@@ -19,7 +19,6 @@ import {
 } from '@/lib/models'
 import { DownloadIcon } from 'lucide-vue-next'
 import KeyMetricsTable from './KeyMetricsTable.vue'
-// import DataCurve from './DataCurve.vue'
 import DataPlot from './DataPlot.vue'
 import ZoneTable from './ZoneTable.vue'
 import { calculateThresholds, calculateZones } from '@/lib/science'
@@ -44,9 +43,9 @@ const key_metrics = computed<KeyMetrics>(() => {
       max_hr: props.ramp_test.stages.length > 0 ? Math.max(...props.ramp_test.stages.map((s) => s.heart_rate ?? 0)) : null,
       thresholds: {
         method: null,
-        lt1_intensity: null,
+        lt1_intensity: 2.5,
         lt1_heart_rate: null,
-        lt2_intensity: null,
+        lt2_intensity: 3.5,
         lt2_heart_rate: null,
       },
       power_zones: [],
