@@ -24,9 +24,9 @@ export function calculateThresholds(
 ): Thresholds {
   const thresholds: Thresholds = {
     lt1_heart_rate: null,
-    lt1_power: null,
+    lt1_intensity: null,
     lt2_heart_rate: null,
-    lt2_power: null,
+    lt2_intensity: null,
     method: null,
   }
 
@@ -37,22 +37,22 @@ export function calculateThresholds(
   switch (method) {
     case ThresholdCalculationMethods.DMAX:
       const coefficients = polynomial_regression(
-        test.stages.map((s) => s.power ?? 0),
+        test.stages.map((s) => s.intensity ?? 0),
         test.stages.map((s) => s.lactate ?? 0),
         polynomial_order,
       )
 
       const curve = discretize(
-        Math.min(...test.stages.map((s) => s.power ?? 0)),
-        Math.max(...test.stages.map((s) => s.power ?? 0)),
+        Math.min(...test.stages.map((s) => s.intensity ?? 0)),
+        Math.max(...test.stages.map((s) => s.intensity ?? 0)),
         coefficients,
       )
 
       return {
         lt1_heart_rate: null,
-        lt1_power: null,
+        lt1_intensity: null,
         lt2_heart_rate: null,
-        lt2_power: null,
+        lt2_intensity: null,
         method: ThresholdCalculationMethods.DMAX
       }
     case ThresholdCalculationMethods.MODIFIED_DMAX:
@@ -77,11 +77,11 @@ export function calculateThresholds(
         stages_lt1[1]?.heart_rate,
         lt1_lact,
       )
-      thresholds.lt1_power = linear_interpolation(
+      thresholds.lt1_intensity = linear_interpolation(
         stages_lt1[0]?.lactate,
-        stages_lt1[0]?.power,
+        stages_lt1[0]?.intensity,
         stages_lt1[1]?.lactate,
-        stages_lt1[1]?.power,
+        stages_lt1[1]?.intensity,
         lt1_lact,
       )
 
@@ -94,11 +94,11 @@ export function calculateThresholds(
         lt2_lact,
       )
 
-      thresholds.lt2_power = linear_interpolation(
+      thresholds.lt2_intensity = linear_interpolation(
         stages_lt2[0]?.lactate,
-        stages_lt2[0]?.power,
+        stages_lt2[0]?.intensity,
         stages_lt2[1]?.lactate,
-        stages_lt2[1]?.power,
+        stages_lt2[1]?.intensity,
         lt2_lact,
       )
 
@@ -282,18 +282,28 @@ export function calculatePeakOneMinutePower(test: RampTest): number {
   let peak_power = 0;
 
   // stages descending
-  const stages = test.stages.filter(s => !!s.power && !!s.duration)
+  const stages = test.stages.filter(s => !!s.intensity && !!s.duration)
   let i = stages.length - 1;
   while (one_minute > 0 && i >= 0) {
     if (stages[i]?.duration >= 60) {
-      return stages[i]?.power;
+      return stages[i]?.intensity;
     }
     const duration = stages[i]?.duration;
-    peak_power += stages[i]?.power * (duration / (60 - duration))
+    peak_power += stages[i]?.intensity * (duration / (60 - duration))
 
     one_minute -= duration;
     i -= 1;
   }
 
   return peak_power;
+}
+
+export function speedToPace(speed: number): Array<number> {
+  // kph -> s/km
+  const pace_sec = Math.round(3600 / speed)
+
+  const minutes = Math.floor(pace_sec / 60)
+  const seconds = pace_sec % 60
+
+  return [minutes, seconds]
 }

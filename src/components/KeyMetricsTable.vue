@@ -11,6 +11,7 @@ import {
 import type { KeyMetrics } from '@/lib/models'
 
 const props = defineProps<{
+  sport: 'cycling' | 'running'
   key_metrics: KeyMetrics
 }>()
 
@@ -56,7 +57,7 @@ function getPercentage(a: number | null, b: number | null): number | null {
           </TableRow>
           <TableRow>
             <TableCell>
-              <h3>LT1 Power</h3>
+              <h3>LT1 {{ props.sport === 'cycling' ? 'Power' : 'Speed' }}</h3>
             </TableCell>
             <TableCell class="table-cell">202 W - 1.2 mmol/L</TableCell>
           </TableRow>
@@ -68,7 +69,7 @@ function getPercentage(a: number | null, b: number | null): number | null {
           </TableRow>
           <TableRow>
             <TableCell>
-              <h3>LT2 Power</h3>
+              <h3>LT2 {{ props.sport === 'cycling' ? 'Power' : 'Speed' }}</h3>
             </TableCell>
             <TableCell class="table-cell">282 W - 4.6 mmol/L</TableCell>
           </TableRow>
@@ -81,44 +82,46 @@ function getPercentage(a: number | null, b: number | null): number | null {
                 getPercentage(props.key_metrics.thresholds.lt2_heart_rate, props.key_metrics.max_hr) + '%' : '' }}
             </TableCell>
           </TableRow>
-          <TableRow v-if='props.key_metrics.ppo'>
-            <TableCell>
-              <h3>Peak One-Minute Power</h3>
-            </TableCell>
-            <TableCell class="table-cell">{{ props.key_metrics.ppo }} W</TableCell>
-          </TableRow>
-          <TableRow>
-            <TableCell>
-              <h3>Functional Threshold Power</h3>
-            </TableCell>
-            <TableCell class="table-cell">280 W</TableCell>
-          </TableRow>
-          <TableRow>
-            <TableCell>
-              <h3>Maximal Aerobic Power</h3>
-            </TableCell>
-            <TableCell class="table-cell">343 W</TableCell>
-          </TableRow>
-          <TableRow v-if='!!props.key_metrics.vo2_max_absolute'>
-            <TableCell>
-              <h3>VO2 Max (Absolute)</h3>
-            </TableCell>
-            <TableCell class="table-cell">{{ Math.round(props.key_metrics.vo2_max_absolute * 100) / 100 }} L/min
-            </TableCell>
-          </TableRow>
-          <TableRow v-if='props.key_metrics.vo2_max_relative'>
-            <TableCell>
-              <h3>VO2 Max (Relative)</h3>
-            </TableCell>
-            <TableCell class="table-cell">{{ Math.round(props.key_metrics.vo2_max_relative * 100) / 100 }} ml/kg/min
-            </TableCell>
-          </TableRow>
-          <TableRow>
-            <TableCell>
-              <h3>Fatmax Power</h3>
-            </TableCell>
-            <TableCell class="table-cell">192 W - 56% of MAP</TableCell>
-          </TableRow>
+          <div class='contents' v-if="props.sport === 'cycling'">
+            <TableRow v-if='props.key_metrics.ppo'>
+              <TableCell>
+                <h3>Peak One-Minute Power</h3>
+              </TableCell>
+              <TableCell class="table-cell">{{ props.key_metrics.ppo }} W</TableCell>
+            </TableRow>
+            <TableRow>
+              <TableCell>
+                <h3>Functional Threshold Power</h3>
+              </TableCell>
+              <TableCell class="table-cell">280 W</TableCell>
+            </TableRow>
+            <TableRow>
+              <TableCell>
+                <h3>Maximal Aerobic Power</h3>
+              </TableCell>
+              <TableCell class="table-cell">343 W</TableCell>
+            </TableRow>
+            <TableRow v-if='!!props.key_metrics.vo2_max_absolute'>
+              <TableCell>
+                <h3>VO2 Max (Absolute)</h3>
+              </TableCell>
+              <TableCell class="table-cell">{{ Math.round(props.key_metrics.vo2_max_absolute * 100) / 100 }} L/min
+              </TableCell>
+            </TableRow>
+            <TableRow v-if='props.key_metrics.vo2_max_relative'>
+              <TableCell>
+                <h3>VO2 Max (Relative)</h3>
+              </TableCell>
+              <TableCell class="table-cell">{{ Math.round(props.key_metrics.vo2_max_relative * 100) / 100 }} ml/kg/min
+              </TableCell>
+            </TableRow>
+            <TableRow>
+              <TableCell>
+                <h3>Fatmax Power</h3>
+              </TableCell>
+              <TableCell class="table-cell">192 W - 56% of MAP</TableCell>
+            </TableRow>
+          </div>
           <TableRow>
             <TableCell>
               <h3>Lactate Treshold Calculation Method</h3>

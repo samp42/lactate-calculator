@@ -17,10 +17,10 @@ const props = defineProps<{
 
 const points = computed<Point[]>(() =>
   props.ramp_test.stages
-    .filter((stage) => stage.power !== null && stage.lactate !== null)
+    .filter((stage) => stage.intensity !== null && stage.lactate !== null)
     .map((stage) => ({
       num: stage.num,
-      power: stage.power as number,
+      power: stage.intensity as number,
       lactate: stage.lactate as number,
     }))
     .sort((a, b) => a.power - b.power),

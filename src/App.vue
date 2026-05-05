@@ -8,37 +8,37 @@ import { Button } from '@/components/ui/button'
 import type { RampTest } from '@/lib/models'
 import ResultsData from './components/ResultsData.vue'
 import AthleteDataInput from './components/AthleteDataInput.vue'
+import { getFirstEmptyStage } from './lib/models'
 
 const ramp_test: Ref<RampTest> = ref({
   name: null,
   weight: null,
-  stages: [{ num: 1, power: null, duration: null, lactate: null, heart_rate: null }],
+  sport: 'cycling',
+  stages: getFirstEmptyStage(),
 })
 
-function addStage() {
-  if (ramp_test.value.stages.length > 0) {
-    const lastStage = ramp_test.value.stages[ramp_test.value.stages.length - 1]
+// function addStage() {
+//   if (ramp_test.value.stages.length > 0) {
+//     const lastStage = ramp_test.value.stages[ramp_test.value.stages.length - 1]
 
-    ramp_test.value.stages = [
-      ...ramp_test.value.stages,
-      {
-        num: lastStage!.num + 1,
-        power: null,
-        duration: lastStage!.duration,
-        lactate: null,
-        heart_rate: null,
-      },
-    ]
-  } else {
-    ramp_test.value.stages = [
-      { num: 1, power: null, duration: null, lactate: null, heart_rate: null },
-    ]
-  }
-}
+//     ramp_test.value.stages = [
+//       ...ramp_test.value.stages,
+//       {
+//         num: lastStage!.num + 1,
+//         intensity: null,
+//         duration: lastStage!.duration,
+//         lactate: null,
+//         heart_rate: null,
+//       },
+//     ]
+//   } else {
+//     ramp_test.value.stages = getFirstEmptyStage()
+//   }
+// }
 
 watch(ramp_test, () => console.log(JSON.stringify(ramp_test.value)))
 
-const addStageRef = ref(null)
+// const addStageRef = ref(null)
 </script>
 
 <template>

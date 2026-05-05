@@ -14,6 +14,7 @@ function updateAthleteName(newName: string) {
   emit('update:modelValue', {
     name: newName,
     weight: props.modelValue.weight,
+    sport: props.modelValue.sport,
     stages: props.modelValue.stages,
   })
 }
@@ -22,6 +23,7 @@ function updateAthleteWeight(newWeight: number) {
   emit('update:modelValue', {
     name: props.modelValue.name,
     weight: newWeight,
+    sport: props.modelValue.sport,
     stages: props.modelValue.stages,
   })
 }
@@ -30,22 +32,11 @@ function updateAthleteWeight(newWeight: number) {
 <template>
   <div>
     <h2>Athlete Data</h2>
-    <div>
-      <Input
-        type="text"
-        placeholder="Rider Name"
-        :model-value="props.modelValue.name"
-        @update:model-value="updateAthleteName"
-        class="w-60"
-        style="margin-right: 12px"
-      />
-      <Input
-        type="number"
-        placeholder="Rider Weight (kg)"
-        :model-value="props.modelValue.weight"
-        @update:model-value="updateAthleteWeight"
-        class="w-60"
-      />
+    <div class='flex'>
+      <Input type="text" placeholder="Rider Name" :model-value="props.modelValue.name"
+        @update:model-value="updateAthleteName" class="w-60" style="margin-right: 12px" />
+      <Input type="number" placeholder="Rider Weight (kg)" :model-value="props.modelValue.weight"
+        @update:model-value="updateAthleteWeight" class="w-60" />
     </div>
   </div>
 </template>

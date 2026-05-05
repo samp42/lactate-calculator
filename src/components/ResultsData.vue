@@ -19,7 +19,8 @@ import {
 } from '@/lib/models'
 import { DownloadIcon } from 'lucide-vue-next'
 import KeyMetricsTable from './KeyMetricsTable.vue'
-import DataCurve from './DataCurve.vue'
+// import DataCurve from './DataCurve.vue'
+import DataPlot from './DataPlot.vue'
 import ZoneTable from './ZoneTable.vue'
 import { calculateThresholds, calculateZones } from '@/lib/science'
 
@@ -31,7 +32,7 @@ function hasEnoughPoints(ramp_test: RampTest): boolean {
   // return true;
 
   return (
-    ramp_test.stages.filter((stage) => stage.power !== null && stage.lactate !== null).length >= 4
+    ramp_test.stages.filter((stage) => stage.intensity !== null && stage.lactate !== null).length >= 4
   )
 }
 
@@ -43,9 +44,9 @@ const key_metrics = computed<KeyMetrics>(() => {
       max_hr: props.ramp_test.stages.length > 0 ? Math.max(...props.ramp_test.stages.map((s) => s.heart_rate ?? 0)) : null,
       thresholds: {
         method: null,
-        lt1_power: null,
+        lt1_intensity: null,
         lt1_heart_rate: null,
-        lt2_power: null,
+        lt2_intensity: null,
         lt2_heart_rate: null,
       },
       power_zones: [],
@@ -75,7 +76,7 @@ const selected_zone_model: Ref<ZoneModels> = ref(ZoneModels.FIVE_ZONES)
   <div v-if="hasEnoughPoints(ramp_test)">
     <div class="flex justify-between pb-1">
       <h2>Ramp Test Results</h2>
-      <Button class="flex align-bottom">
+      <Button class="flex align-bottom" variant='outline'>
         <DownloadIcon />
         <h3 class="pl-2">Download Results</h3>
       </Button>
@@ -121,7 +122,8 @@ const selected_zone_model: Ref<ZoneModels> = ref(ZoneModels.FIVE_ZONES)
         </Select>
       </div>
       <div class="mt-6">
-        <DataCurve :ramp_test="ramp_test" />
+        <!-- <DataCurve :ramp_test="ramp_test" /> -->
+        <DataPlot :ramp_test='ramp_test' :key_metrics='key_metrics' />
       </div>
     </div>
     <div class="flex w-full justify-between pb-1">
@@ -152,11 +154,11 @@ const selected_zone_model: Ref<ZoneModels> = ref(ZoneModels.FIVE_ZONES)
       <ZoneTable type="heart_rate" :zones="key_metrics.heart_rate_zones" class="flex-1" />
     </div>
     <h2>Calculated Data</h2>
-    <KeyMetricsTable :key_metrics="key_metrics" />
+    <KeyMetricsTable :sport="ramp_test.sport" :key_metrics="key_metrics" />
   </div>
   <div v-else class="flex justify-center">
     <p class="font-black text-center" style="font-size: x-large; font-weight: bold">
-      Not enough power & lactate points.<br />At least 4 are needed.
+      Not enough {{ ramp_test.sport === 'cycling' ? 'power' : 'speed' }} & lactate points.<br />At least 4 are needed.
     </p>
   </div>
 </template>

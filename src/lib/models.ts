@@ -1,6 +1,6 @@
 export interface RampTestStage {
   num: number
-  power: number | null
+  intensity: number | null // power for cycling, speed for running
   duration: number | null
   lactate: number | null
   heart_rate: number | null
@@ -9,6 +9,7 @@ export interface RampTestStage {
 export interface RampTest {
   name: string | null
   weight: number | null
+  sport: 'cycling' | 'running'
   stages: Array<RampTestStage>
 }
 
@@ -23,9 +24,9 @@ export interface TrainingZone {
 
 export interface Thresholds {
   method: ThresholdCalculationMethods | null
-  lt1_power: number | null
+  lt1_intensity: number | null // power / speed
   lt1_heart_rate: number | null
-  lt2_power: number | null
+  lt2_intensity: number | null // power / speed
   lt2_heart_rate: number | null
 }
 
@@ -59,4 +60,8 @@ export enum ZoneModels {
   THREE_ZONES = '3 Zones',
   FIVE_ZONES = '5 Zones',
   SEVEN_ZONES = '7 Zones',
+}
+
+export function getFirstEmptyStage() {
+  return [{ num: 1, intensity: null, duration: null, lactate: null, heart_rate: null }]
 }

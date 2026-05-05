@@ -25,8 +25,7 @@ const props = defineProps<{
       </CardHeader>
       <CardContent>
         <Table>
-          <TableCaption
-            >Ramp Test Results
+          <TableCaption>Ramp Test Results
             {{ props.ramp_test.name !== null ? 'for ' + props.ramp_test.name : '' }}
           </TableCaption>
           <TableHeader>
@@ -51,7 +50,7 @@ const props = defineProps<{
           <TableBody>
             <TableRow v-for="stage in props.ramp_test.stages" :key="stage.num">
               <TableCell class="table-cell">{{ stage.num }}</TableCell>
-              <TableCell class="table-cell">{{ stage.power }}</TableCell>
+              <TableCell class="table-cell">{{ stage.intensity }}</TableCell>
               <TableCell class="table-cell">{{ stage.duration }}</TableCell>
               <TableCell class="table-cell">{{ stage.lactate }}</TableCell>
               <TableCell class="table-cell">{{ stage.heart_rate }}</TableCell>
