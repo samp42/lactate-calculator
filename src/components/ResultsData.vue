@@ -9,7 +9,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { ref, type Ref, computed } from 'vue'
+import { ref, type Ref, computed, watch } from 'vue'
 import ResultsTable from './ResultsTable.vue'
 import {
   type RampTest,
@@ -22,6 +22,8 @@ import KeyMetricsTable from './KeyMetricsTable.vue'
 import DataPlot from './DataPlot.vue'
 import ZoneTable from './ZoneTable.vue'
 import { calculateThresholds, calculateZones } from '@/lib/science'
+import html2canvas from 'html2canvas'
+import jsPDF from 'jspdf'
 
 const props = defineProps<{
   ramp_test: RampTest
@@ -43,9 +45,9 @@ const key_metrics = computed<KeyMetrics>(() => {
       max_hr: props.ramp_test.stages.length > 0 ? Math.max(...props.ramp_test.stages.map((s) => s.heart_rate ?? 0)) : null,
       thresholds: {
         method: null,
-        lt1_intensity: 2.5,
+        lt1_intensity: null,
         lt1_heart_rate: null,
-        lt2_intensity: 3.5,
+        lt2_intensity: null,
         lt2_heart_rate: null,
       },
       power_zones: [],
@@ -56,30 +58,64 @@ const key_metrics = computed<KeyMetrics>(() => {
   const thresholds = calculateThresholds(props.ramp_test, selected_method.value)
   const zones = calculateZones(props.ramp_test, thresholds, selected_zone_model.value)
 
+
+  watch(key_metrics, () => {
+    console.log(thresholds)
+  })
+
   return {
     athlete_name: props.ramp_test.name,
     athlete_weight: props.ramp_test.weight,
     max_hr: Math.max(...props.ramp_test.stages.map((s) => s.heart_rate ?? 0)),
     ppo: null,
     thresholds,
-    power_zones: zones.power_zones,
+    power_zones: zones.intensity_zones,
     heart_rate_zones: zones.heart_rate_zones,
   }
 })
 
 const selected_method: Ref<ThresholdCalculationMethods> = ref(ThresholdCalculationMethods.DMAX)
 const selected_zone_model: Ref<ZoneModels> = ref(ZoneModels.FIVE_ZONES)
+
+const resultsContainer = ref<HTMLElement | null>(null)
+const isDownloading = ref(false)
+
+async function downloadPDF() {
+  if (!resultsContainer.value) return
+  isDownloading.value = true
+
+  await new Promise((r) => setTimeout(r, 50))
+
+  const canvas = await html2canvas(resultsContainer.value, {
+    scale: 2,
+    useCORS: true,
+    backgroundColor: '#ffffff',
+    logging: false,
+  })
+
+  const imgW = canvas.width
+  const imgH = canvas.height
+  const pdf = new jsPDF({ orientation: 'portrait', unit: 'px', format: [imgW / 2, imgH / 2] })
+  pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, imgW / 2, imgH / 2)
+
+  const name = props.ramp_test.name?.toUpperCase().replace(/\s+/g, '_') ?? 'ramp_test'
+  const date = new Date().toISOString().slice(0, 10)
+  pdf.save(`${name}_${date}.pdf`)
+
+  isDownloading.value = false
+}
 </script>
 
 <template>
   <div v-if="hasEnoughPoints(ramp_test)">
     <div class="flex justify-between pb-1">
       <h2>Ramp Test Results</h2>
-      <Button class="flex align-bottom" variant='outline'>
+      <Button class="flex align-bottom" variant='outline' :disabled="isDownloading" @click="downloadPDF">
         <DownloadIcon />
-        <h3 class="pl-2">Download Results</h3>
+        <h3 class="pl-2">{{ isDownloading ? 'Downloading...' : 'Download Results' }}</h3>
       </Button>
     </div>
+    <div ref="resultsContainer">
     <ResultsTable :ramp_test="ramp_test" class="pb-8" />
 
     <div class="pb-8">
@@ -92,30 +128,30 @@ const selected_zone_model: Ref<ZoneModels> = ref(ZoneModels.FIVE_ZONES)
           <SelectContent>
             <SelectGroup>
               <SelectLabel>Methods</SelectLabel>
-              <SelectItem :value="ThresholdCalculationMethods.NONE">
+              <!-- <SelectItem :value="ThresholdCalculationMethods.NONE">
                 {{ ThresholdCalculationMethods.NONE }}
-              </SelectItem>
+              </SelectItem> -->
               <SelectItem :value="ThresholdCalculationMethods.DMAX">
                 {{ ThresholdCalculationMethods.DMAX }}
               </SelectItem>
               <SelectItem :value="ThresholdCalculationMethods.MODIFIED_DMAX">
                 {{ ThresholdCalculationMethods.MODIFIED_DMAX }}
               </SelectItem>
-              <SelectItem :value="ThresholdCalculationMethods.POLYNOMIAL_CURVE_FITTING">
+              <!-- <SelectItem :value="ThresholdCalculationMethods.POLYNOMIAL_CURVE_FITTING">
                 {{ ThresholdCalculationMethods.POLYNOMIAL_CURVE_FITTING }}
               </SelectItem>
               <SelectItem :value="ThresholdCalculationMethods.HR_LACTATE_COUPLING">
                 {{ ThresholdCalculationMethods.HR_LACTATE_COUPLING }}
-              </SelectItem>
+              </SelectItem> -->
               <SelectItem :value="ThresholdCalculationMethods.FIXED_LACTATE_THRESHOLDS">
                 {{ ThresholdCalculationMethods.FIXED_LACTATE_THRESHOLDS }}
               </SelectItem>
-              <SelectItem :value="ThresholdCalculationMethods.LOG_LOG_LT">
+              <!-- <SelectItem :value="ThresholdCalculationMethods.LOG_LOG_LT">
                 {{ ThresholdCalculationMethods.LOG_LOG_LT }}
               </SelectItem>
               <SelectItem :value="ThresholdCalculationMethods.BASELINE_0_5">
                 {{ ThresholdCalculationMethods.BASELINE_0_5 }}
-              </SelectItem>
+              </SelectItem> -->
             </SelectGroup>
           </SelectContent>
         </Select>
@@ -134,9 +170,9 @@ const selected_zone_model: Ref<ZoneModels> = ref(ZoneModels.FIVE_ZONES)
         <SelectContent>
           <SelectGroup>
             <SelectLabel>Models</SelectLabel>
-            <SelectItem :value="ZoneModels.THREE_ZONES">
+            <!-- <SelectItem :value="ZoneModels.THREE_ZONES">
               {{ ZoneModels.THREE_ZONES }}
-            </SelectItem>
+            </SelectItem> -->
             <SelectItem :value="ZoneModels.FIVE_ZONES">
               {{ ZoneModels.FIVE_ZONES }}
             </SelectItem>
@@ -152,8 +188,11 @@ const selected_zone_model: Ref<ZoneModels> = ref(ZoneModels.FIVE_ZONES)
       <div style="width: 12px"></div>
       <ZoneTable type="heart_rate" :zones="key_metrics.heart_rate_zones" class="flex-1" />
     </div>
+
     <h2>Calculated Data</h2>
     <KeyMetricsTable :sport="ramp_test.sport" :key_metrics="key_metrics" />
+    </div>
+
   </div>
   <div v-else class="flex justify-center">
     <p class="font-black text-center" style="font-size: x-large; font-weight: bold">

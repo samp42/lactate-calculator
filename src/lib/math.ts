@@ -1,3 +1,11 @@
+// find x for given y
+export function linear_interpolation(x1: number, y1: number, x2: number, y2: number, y: number): number {
+  const slope = (y2 - y1) / (x2 - x1)
+  const intercept = (y1 - slope * x1)
+
+  return (y - intercept) / slope
+}
+
 export function polynomial_regression(x: number[], y: number[], degree: 2 | 3 | 4 = 3): number[] {
   const n = x.length
   const m = degree + 1
@@ -169,4 +177,91 @@ function backSubstitution(R: number[][], b: number[], n: number): number[] {
   }
 
   return x
+}
+
+function linearSSR(x: number[], y: number[]): number {
+  const n = x.length
+  if (n < 2) return 0
+
+  const xMean = x.reduce((a, b) => a + b, 0) / n
+  const yMean = y.reduce((a, b) => a + b, 0) / n
+
+  let ssXX = 0
+  let ssXY = 0
+  for (let i = 0; i < n; i++) {
+    ssXX += (x[i]! - xMean) ** 2
+    ssXY += (x[i]! - xMean) * (y[i]! - yMean)
+  }
+
+  const slope = ssXX === 0 ? 0 : ssXY / ssXX
+  const intercept = yMean - slope * xMean
+
+  let ssr = 0
+  for (let i = 0; i < n; i++) {
+    ssr += (y[i]! - (slope * x[i]! + intercept)) ** 2
+  }
+
+  return ssr
+}
+
+// Piecewise linear regression in log-log space to find LT1 breakpoint
+export function findLogLogLT1(intensities: number[], lactates: number[]): number {
+  const logX = intensities.map(x => Math.log(x))
+  const logY = lactates.map(y => Math.log(y))
+
+  const n = logX.length
+  let minSSR = Infinity
+  let lt1Index = 1
+
+  for (let split = 1; split < n - 1; split++) {
+    const ssr = linearSSR(logX.slice(0, split + 1), logY.slice(0, split + 1))
+             + linearSSR(logX.slice(split), logY.slice(split))
+    if (ssr < minSSR) {
+      minSSR = ssr
+      lt1Index = split
+    }
+  }
+
+  return intensities[lt1Index]!
+}
+
+export function findDmaxThreshold(
+  lineX: number[],
+  lineY: number[],
+  polyX: number[],
+  polyY: number[]
+): number {
+  // Line is defined by its first and last points
+  const x1 = lineX[0];
+  const y1 = lineY[0];
+  const x2 = lineX[lineX.length - 1];
+  const y2 = lineY[lineY.length - 1];
+
+  // Coefficients for the line equation: ax + by + c = 0
+  const a = y2 - y1;
+  const b = x1 - x2;
+  const c = x2 * y1 - x1 * y2;
+  const denom = Math.sqrt(a * a + b * b);
+
+  if (denom === 0) {
+    throw new Error("Line endpoints are identical — cannot define a line.");
+  }
+
+  let maxDistance = -Infinity;
+  let thresholdX = polyX[0];
+
+  for (let i = 0; i < polyX.length; i++) {
+    const px = polyX[i];
+    const py = polyY[i];
+
+    // Perpendicular distance from point (px, py) to the line ax + by + c = 0
+    const distance = Math.abs(a * px + b * py + c) / denom;
+
+    if (distance > maxDistance) {
+      maxDistance = distance;
+      thresholdX = px;
+    }
+  }
+
+  return thresholdX;
 }

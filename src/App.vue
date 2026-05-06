@@ -62,9 +62,6 @@ watch(ramp_test, () => console.log(JSON.stringify(ramp_test.value)))
               <AthleteDataInput :modelValue="ramp_test" @update:modelValue="ramp_test = $event" />
             </div>
             <RampTestInput :modelValue="ramp_test" @update:modelValue="ramp_test = $event" ref="addStageRef" />
-            <div>
-              <Button @click="console.log('redirect')">Go to Results</Button>
-            </div>
           </TabsContent>
           <TabsContent value="results" style="margin-top: 24px">
             <div>
@@ -74,7 +71,7 @@ watch(ramp_test, () => console.log(JSON.stringify(ramp_test.value)))
         </Tabs>
       </div>
 
-      <InfoContent></InfoContent>
+      <!-- <InfoContent /> -->
     </div>
   </div>
 </template>

@@ -17,7 +17,7 @@ const props = defineProps<{
 
 function getPercentage(a: number | null, b: number | null): number | null {
   if (a && b) {
-    return Math.round(a / b);
+    return Math.round(a * 100 / b);
   }
   return null
 }
@@ -65,7 +65,10 @@ function getPercentage(a: number | null, b: number | null): number | null {
             <TableCell>
               <h3>LT1 Heart Rate</h3>
             </TableCell>
-            <TableCell class="table-cell">143 BPM - 77% of Max</TableCell>
+            <TableCell class="table-cell">{{ props.key_metrics.thresholds.lt1_heart_rate }} BPM {{
+              getPercentage(props.key_metrics.thresholds.lt1_heart_rate, props.key_metrics.max_hr) ? ' - ' +
+                getPercentage(props.key_metrics.thresholds.lt1_heart_rate, props.key_metrics.max_hr) + '%' : '' }}
+            </TableCell>
           </TableRow>
           <TableRow>
             <TableCell>
@@ -78,7 +81,7 @@ function getPercentage(a: number | null, b: number | null): number | null {
               <h3>LT2 Heart Rate</h3>
             </TableCell>
             <TableCell class="table-cell">{{ props.key_metrics.thresholds.lt2_heart_rate }} BPM {{
-              getPercentage(props.key_metrics.thresholds.lt2_heart_rate, props.key_metrics.max_hr) ? '-' +
+              getPercentage(props.key_metrics.thresholds.lt2_heart_rate, props.key_metrics.max_hr) ? ' - ' +
                 getPercentage(props.key_metrics.thresholds.lt2_heart_rate, props.key_metrics.max_hr) + '%' : '' }}
             </TableCell>
           </TableRow>

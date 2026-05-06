@@ -38,7 +38,7 @@ const ltLines = computed(() => {
     })
     annotations.push({
       x: props.key_metrics.thresholds.lt1_intensity,
-      y: 1.02,
+      y: 1.08,
       xref: 'x',
       yref: 'paper',
       text: 'LT1',
@@ -59,7 +59,7 @@ const ltLines = computed(() => {
     })
     annotations.push({
       x: props.key_metrics.thresholds.lt2_intensity,
-      y: 1.02,
+      y: 1.08,
       xref: 'x',
       yref: 'paper',
       text: 'LT2',
