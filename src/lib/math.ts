@@ -43,10 +43,12 @@ export function find_maximum_distance_point(x: number[], y: number[]): { x: numb
   let maxPoint = { x: 0, y: 0 }
 
   for (let i = 0; i < n; i++) {
-    const distance = Math.sqrt(x[i] * x[i] + y[i] * y[i])
+    const xi = x[i]!
+    const yi = y[i]!
+    const distance = Math.sqrt(xi * xi + yi * yi)
     if (distance > maxDistance) {
       maxDistance = distance
-      maxPoint = { x: x[i], y: y[i] }
+      maxPoint = { x: xi, y: yi }
     }
   }
 
@@ -61,8 +63,8 @@ function buildVandermonde(x: number[], m: number): number[][] {
     V[i] = Array.from({ length: m })
     let power = 1
     for (let j = 0; j < m; j++) {
-      V[i][j] = power
-      power *= x[i]
+      V[i]![j] = power
+      power *= x[i]!
     }
   }
 
@@ -79,7 +81,7 @@ function qrDecomposition(
   for (let i = 0; i < rows; i++) {
     Q[i] = new Array(cols)
     for (let j = 0; j < cols; j++) {
-      Q[i][j] = i === j ? 1 : 0
+      Q[i]![j] = i === j ? 1 : 0
     }
   }
 
@@ -88,7 +90,7 @@ function qrDecomposition(
   for (let i = 0; i < cols; i++) {
     R[i] = new Array(cols)
     for (let j = 0; j < cols; j++) {
-      R[i][j] = A[i]?.[j] || 0
+      R[i]![j] = A[i]?.[j] ?? 0
     }
   }
 
@@ -97,26 +99,26 @@ function qrDecomposition(
     // Get column i from original matrix
     const column: number[] = new Array(rows)
     for (let k = 0; k < rows; k++) {
-      column[k] = A[k][i]
+      column[k] = A[k]![i]!
     }
 
     // Subtract projections onto previous columns
     for (let j = 0; j < i; j++) {
       let dot = 0
       for (let k = 0; k < rows; k++) {
-        dot += column[k] * Q[k][j]
+        dot += column[k]! * Q[k]![j]!
       }
-      R[j][i] = dot
+      R[j]![i] = dot
 
       for (let k = 0; k < rows; k++) {
-        column[k] -= dot * Q[k][j]
+        column[k] = column[k]! - dot * Q[k]![j]!
       }
     }
 
     // Normalize column
     let norm = 0
     for (let k = 0; k < rows; k++) {
-      norm += column[k] * column[k]
+      norm += column[k]! * column[k]!
     }
     norm = Math.sqrt(norm)
 
@@ -124,9 +126,9 @@ function qrDecomposition(
       throw new Error('Matrix is rank deficient')
     }
 
-    R[i][i] = norm
+    R[i]![i] = norm
     for (let k = 0; k < rows; k++) {
-      Q[k][i] = column[k] / norm
+      Q[k]![i] = column[k]! / norm
     }
   }
 
@@ -147,7 +149,7 @@ function matrixVectorMultiply(
     for (let i = 0; i < cols; i++) {
       let sum = 0
       for (let j = 0; j < rows; j++) {
-        sum += matrix[j][i] * vector[j]
+        sum += matrix[j]![i]! * vector[j]!
       }
       result[i] = sum
     }
@@ -156,7 +158,7 @@ function matrixVectorMultiply(
     for (let i = 0; i < rows; i++) {
       let sum = 0
       for (let j = 0; j < cols; j++) {
-        sum += matrix[i][j] * vector[j]
+        sum += matrix[i]![j]! * vector[j]!
       }
       result[i] = sum
     }
@@ -169,11 +171,11 @@ function backSubstitution(R: number[][], b: number[], n: number): number[] {
   const x: number[] = new Array(n)
 
   for (let i = n - 1; i >= 0; i--) {
-    let sum = b[i]
+    let sum = b[i]!
     for (let j = i + 1; j < n; j++) {
-      sum -= R[i][j] * x[j]
+      sum -= R[i]![j]! * x[j]!
     }
-    x[i] = sum / R[i][i]
+    x[i] = sum / R[i]![i]!
   }
 
   return x
@@ -204,25 +206,41 @@ function linearSSR(x: number[], y: number[]): number {
   return ssr
 }
 
+// Returns the index of the optimal split point in a piecewise linear regression over x/y
+export function findPiecewiseBreakpointIndex(x: number[], y: number[]): number {
+  const n = x.length
+  let minSSR = Infinity
+  let breakIdx = 1
+
+  for (let split = 1; split < n - 1; split++) {
+    const ssr = linearSSR(x.slice(0, split + 1), y.slice(0, split + 1))
+      + linearSSR(x.slice(split), y.slice(split))
+    if (ssr < minSSR) {
+      minSSR = ssr
+      breakIdx = split
+    }
+  }
+
+  return breakIdx
+}
+
 // Piecewise linear regression in log-log space to find LT1 breakpoint
 export function findLogLogLT1(intensities: number[], lactates: number[]): number {
   const logX = intensities.map(x => Math.log(x))
   const logY = lactates.map(y => Math.log(y))
+  return intensities[findPiecewiseBreakpointIndex(logX, logY)]!
+}
 
-  const n = logX.length
-  let minSSR = Infinity
-  let lt1Index = 1
-
-  for (let split = 1; split < n - 1; split++) {
-    const ssr = linearSSR(logX.slice(0, split + 1), logY.slice(0, split + 1))
-             + linearSSR(logX.slice(split), logY.slice(split))
-    if (ssr < minSSR) {
-      minSSR = ssr
-      lt1Index = split
-    }
-  }
-
-  return intensities[lt1Index]!
+export function discretizeN(
+  x_min: number,
+  x_max: number,
+  coef: number[],
+  n = 500,
+): { x: number[]; y: number[] } {
+  const step = (x_max - x_min) / (n - 1)
+  const x: number[] = Array.from({ length: n }, (_, i) => x_min + i * step)
+  const y: number[] = x.map((val) => coef.reduce((sum, coeff, i) => sum + coeff * Math.pow(val, i), 0))
+  return { x, y }
 }
 
 export function findDmaxThreshold(
@@ -232,10 +250,10 @@ export function findDmaxThreshold(
   polyY: number[]
 ): number {
   // Line is defined by its first and last points
-  const x1 = lineX[0];
-  const y1 = lineY[0];
-  const x2 = lineX[lineX.length - 1];
-  const y2 = lineY[lineY.length - 1];
+  const x1 = lineX[0]!;
+  const y1 = lineY[0]!;
+  const x2 = lineX[lineX.length - 1]!;
+  const y2 = lineY[lineY.length - 1]!;
 
   // Coefficients for the line equation: ax + by + c = 0
   const a = y2 - y1;
@@ -248,11 +266,11 @@ export function findDmaxThreshold(
   }
 
   let maxDistance = -Infinity;
-  let thresholdX = polyX[0];
+  let thresholdX = polyX[0]!;
 
   for (let i = 0; i < polyX.length; i++) {
-    const px = polyX[i];
-    const py = polyY[i];
+    const px = polyX[i]!;
+    const py = polyY[i]!;
 
     // Perpendicular distance from point (px, py) to the line ax + by + c = 0
     const distance = Math.abs(a * px + b * py + c) / denom;

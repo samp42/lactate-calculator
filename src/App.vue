@@ -14,7 +14,7 @@ const ramp_test: Ref<RampTest> = ref({
   name: null,
   weight: null,
   sport: 'cycling',
-  stages: getFictiveStages(), //getFirstEmptyStage(),
+  stages: getFirstEmptyStage(),
 })
 
 // function addStage() {

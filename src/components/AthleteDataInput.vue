@@ -33,10 +33,10 @@ function updateAthleteWeight(newWeight: number) {
   <div>
     <h2>Athlete Data</h2>
     <div class='flex'>
-      <Input type="text" placeholder="Rider Name" :model-value="props.modelValue.name"
-        @update:model-value="updateAthleteName" class="w-60" style="margin-right: 12px" />
-      <Input type="number" placeholder="Rider Weight (kg)" :model-value="props.modelValue.weight"
-        @update:model-value="updateAthleteWeight" class="w-60" />
+      <Input type="text" placeholder="Rider Name" :model-value="props.modelValue.name ?? undefined"
+        @update:model-value="(v) => updateAthleteName(String(v))" class="w-60" style="margin-right: 12px" />
+      <Input type="number" placeholder="Rider Weight (kg)" :model-value="props.modelValue.weight ?? undefined"
+        @update:model-value="(v) => updateAthleteWeight(Number(v))" class="w-60" />
     </div>
   </div>
 </template>

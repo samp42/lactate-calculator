@@ -19,10 +19,10 @@ const props = defineProps<{
 }>()
 
 function exportCSV() {
-  const headers = Object.keys(props.ramp_test.stages[0]);
+  const headers = Object.keys(props.ramp_test.stages[0]!);
   const rows = props.ramp_test.stages.map(row =>
     headers.map(h => {
-      const val = String(row[h] ?? "");
+      const val = String((row as unknown as Record<string, unknown>)[h] ?? "");
       // Wrap in quotes if value contains comma, quote, or newline
       return /[",\n]/.test(val) ? `"${val.replace(/"/g, '""')}"` : val;
     }).join(",")

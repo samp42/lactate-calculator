@@ -21,7 +21,7 @@ import { DownloadIcon } from 'lucide-vue-next'
 import KeyMetricsTable from './KeyMetricsTable.vue'
 import DataPlot from './DataPlot.vue'
 import ZoneTable from './ZoneTable.vue'
-import { calculateThresholds, calculateZones } from '@/lib/science'
+import { calculateThresholds, calculateZones, calculateMAP, calculateVO2Max } from '@/lib/science'
 import html2canvas from 'html2canvas'
 import jsPDF from 'jspdf'
 
@@ -43,6 +43,11 @@ const key_metrics = computed<KeyMetrics>(() => {
       athlete_name: props.ramp_test.name,
       athlete_weight: props.ramp_test.weight,
       max_hr: props.ramp_test.stages.length > 0 ? Math.max(...props.ramp_test.stages.map((s) => s.heart_rate ?? 0)) : null,
+      ftp: null,
+      map: null,
+      ppo: null,
+      vo2_max_absolute: null,
+      vo2_max_relative: null,
       thresholds: {
         method: null,
         lt1_intensity: null,
@@ -58,6 +63,8 @@ const key_metrics = computed<KeyMetrics>(() => {
   const thresholds = calculateThresholds(props.ramp_test, selected_method.value)
   const zones = calculateZones(props.ramp_test, thresholds, selected_zone_model.value)
 
+  const map = calculateMAP(props.ramp_test)
+  const vo2_max = calculateVO2Max(props.ramp_test, map)
 
   watch(key_metrics, () => {
     console.log(thresholds)
@@ -67,7 +74,11 @@ const key_metrics = computed<KeyMetrics>(() => {
     athlete_name: props.ramp_test.name,
     athlete_weight: props.ramp_test.weight,
     max_hr: Math.max(...props.ramp_test.stages.map((s) => s.heart_rate ?? 0)),
+    ftp: null,
+    map: map,
     ppo: null,
+    vo2_max_absolute: vo2_max?.absolute ?? null,
+    vo2_max_relative: vo2_max?.relative ?? null,
     thresholds,
     power_zones: zones.intensity_zones,
     heart_rate_zones: zones.heart_rate_zones,
@@ -110,87 +121,91 @@ async function downloadPDF() {
   <div v-if="hasEnoughPoints(ramp_test)">
     <div class="flex justify-between pb-1">
       <h2>Ramp Test Results</h2>
-      <Button class="flex align-bottom" variant='outline' :disabled="isDownloading" @click="downloadPDF">
+      <!-- <Button class="flex align-bottom" variant='outline' :disabled="isDownloading" @click="downloadPDF">
         <DownloadIcon />
         <h3 class="pl-2">{{ isDownloading ? 'Downloading...' : 'Download Results' }}</h3>
-      </Button>
+      </Button> -->
     </div>
     <div ref="resultsContainer">
-    <ResultsTable :ramp_test="ramp_test" class="pb-8" />
+      <ResultsTable :ramp_test="ramp_test" class="pb-8" />
 
-    <div class="pb-8">
-      <div class="flex justify-between pb-1">
-        <h2>Results Curve</h2>
-        <Select v-model="selected_method">
-          <SelectTrigger class="w-60">
-            <SelectValue placeholder="Select a calculation method" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectGroup>
-              <SelectLabel>Methods</SelectLabel>
-              <!-- <SelectItem :value="ThresholdCalculationMethods.NONE">
+      <div class="pb-8">
+        <div class="flex justify-between pb-1">
+          <h2>Results Curve</h2>
+          <Select v-model="selected_method">
+            <SelectTrigger class="w-60">
+              <SelectValue placeholder="Select a calculation method" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectGroup>
+                <SelectLabel>Methods</SelectLabel>
+                <!-- <SelectItem :value="ThresholdCalculationMethods.NONE">
                 {{ ThresholdCalculationMethods.NONE }}
               </SelectItem> -->
-              <SelectItem :value="ThresholdCalculationMethods.DMAX">
-                {{ ThresholdCalculationMethods.DMAX }}
-              </SelectItem>
-              <SelectItem :value="ThresholdCalculationMethods.MODIFIED_DMAX">
-                {{ ThresholdCalculationMethods.MODIFIED_DMAX }}
-              </SelectItem>
-              <!-- <SelectItem :value="ThresholdCalculationMethods.POLYNOMIAL_CURVE_FITTING">
+                <SelectItem :value="ThresholdCalculationMethods.DMAX">
+                  {{ ThresholdCalculationMethods.DMAX }}
+                </SelectItem>
+                <SelectItem :value="ThresholdCalculationMethods.MODIFIED_DMAX">
+                  {{ ThresholdCalculationMethods.MODIFIED_DMAX }}
+                </SelectItem>
+                <SelectItem :value="ThresholdCalculationMethods.LOG_LOG_DMAX">
+                  {{ ThresholdCalculationMethods.LOG_LOG_DMAX }}
+                </SelectItem>
+                <!-- <SelectItem :value="ThresholdCalculationMethods.POLYNOMIAL_CURVE_FITTING">
                 {{ ThresholdCalculationMethods.POLYNOMIAL_CURVE_FITTING }}
-              </SelectItem>
-              <SelectItem :value="ThresholdCalculationMethods.HR_LACTATE_COUPLING">
-                {{ ThresholdCalculationMethods.HR_LACTATE_COUPLING }}
               </SelectItem> -->
-              <SelectItem :value="ThresholdCalculationMethods.FIXED_LACTATE_THRESHOLDS">
-                {{ ThresholdCalculationMethods.FIXED_LACTATE_THRESHOLDS }}
-              </SelectItem>
-              <!-- <SelectItem :value="ThresholdCalculationMethods.LOG_LOG_LT">
+
+                <SelectItem :value="ThresholdCalculationMethods.HR_LACTATE_COUPLING">
+                  {{ ThresholdCalculationMethods.HR_LACTATE_COUPLING }}
+                </SelectItem>
+                <SelectItem :value="ThresholdCalculationMethods.FIXED_LACTATE_THRESHOLDS">
+                  {{ ThresholdCalculationMethods.FIXED_LACTATE_THRESHOLDS }}
+                </SelectItem>
+                <!-- <SelectItem :value="ThresholdCalculationMethods.LOG_LOG_LT">
                 {{ ThresholdCalculationMethods.LOG_LOG_LT }}
               </SelectItem>
               <SelectItem :value="ThresholdCalculationMethods.BASELINE_0_5">
                 {{ ThresholdCalculationMethods.BASELINE_0_5 }}
               </SelectItem> -->
+              </SelectGroup>
+            </SelectContent>
+          </Select>
+        </div>
+        <div class="mt-6">
+          <!-- <DataCurve :ramp_test="ramp_test" /> -->
+          <DataPlot :ramp_test='ramp_test' :key_metrics='key_metrics' />
+        </div>
+      </div>
+      <div class="flex w-full justify-between pb-1">
+        <h2>Zones</h2>
+        <Select v-model="selected_zone_model">
+          <SelectTrigger class="w-60">
+            <SelectValue placeholder="Zone model" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectGroup>
+              <SelectLabel>Models</SelectLabel>
+              <!-- <SelectItem :value="ZoneModels.THREE_ZONES">
+              {{ ZoneModels.THREE_ZONES }}
+            </SelectItem> -->
+              <SelectItem :value="ZoneModels.FIVE_ZONES">
+                {{ ZoneModels.FIVE_ZONES }}
+              </SelectItem>
+              <SelectItem :value="ZoneModels.SEVEN_ZONES">
+                {{ ZoneModels.SEVEN_ZONES }}
+              </SelectItem>
             </SelectGroup>
           </SelectContent>
         </Select>
       </div>
-      <div class="mt-6">
-        <!-- <DataCurve :ramp_test="ramp_test" /> -->
-        <DataPlot :ramp_test='ramp_test' :key_metrics='key_metrics' />
+      <div class="flex w-full justify-between pb-8">
+        <ZoneTable type="power" :sport="ramp_test.sport" :zones="key_metrics.power_zones" class="flex-1" />
+        <div style="width: 12px"></div>
+        <ZoneTable type="heart_rate" :sport="ramp_test.sport" :zones="key_metrics.heart_rate_zones" class="flex-1" />
       </div>
-    </div>
-    <div class="flex w-full justify-between pb-1">
-      <h2>Zones</h2>
-      <Select v-model="selected_zone_model">
-        <SelectTrigger class="w-60">
-          <SelectValue placeholder="Zone model" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectGroup>
-            <SelectLabel>Models</SelectLabel>
-            <!-- <SelectItem :value="ZoneModels.THREE_ZONES">
-              {{ ZoneModels.THREE_ZONES }}
-            </SelectItem> -->
-            <SelectItem :value="ZoneModels.FIVE_ZONES">
-              {{ ZoneModels.FIVE_ZONES }}
-            </SelectItem>
-            <SelectItem :value="ZoneModels.SEVEN_ZONES">
-              {{ ZoneModels.SEVEN_ZONES }}
-            </SelectItem>
-          </SelectGroup>
-        </SelectContent>
-      </Select>
-    </div>
-    <div class="flex w-full justify-between pb-8">
-      <ZoneTable type="power" :zones="key_metrics.power_zones" class="flex-1" />
-      <div style="width: 12px"></div>
-      <ZoneTable type="heart_rate" :zones="key_metrics.heart_rate_zones" class="flex-1" />
-    </div>
 
-    <h2>Calculated Data</h2>
-    <KeyMetricsTable :sport="ramp_test.sport" :key_metrics="key_metrics" />
+      <h2>Calculated Data</h2>
+      <KeyMetricsTable :sport="ramp_test.sport" :key_metrics="key_metrics" />
     </div>
 
   </div>

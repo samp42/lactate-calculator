@@ -5,15 +5,16 @@ import {
   type RampTestStage,
   type Thresholds,
   type TrainingZone,
+  type KeyMetrics,
 } from './models'
 
-import { linear_interpolation, polynomial_regression, discretize, findDmaxThreshold, findLogLogLT1 } from './math'
+import { linear_interpolation, polynomial_regression, discretize, discretizeN, findDmaxThreshold, findLogLogLT1, findPiecewiseBreakpointIndex } from './math'
 
 // for modified dmax, point before first increase of > 0.4 mmol/L
 function point_before_first_increase(test: RampTest): RampTestStage | null {
   for (let i = 0; i < test.stages.length - 1; i++) {
-    if (test.stages[i + 1]?.lactate - test.stages[i]?.lactate > 0.4) {
-      return test.stages[i]
+    if ((test.stages[i + 1]!.lactate ?? 0) - (test.stages[i]!.lactate ?? 0) > 0.4) {
+      return test.stages[i] ?? null
     }
   }
 
@@ -34,17 +35,32 @@ function heart_rate_at_intensity(test: RampTest, intensity: number): number | nu
   return null
 }
 
+function intensity_at_heart_rate(test: RampTest, hr: number): number | null {
+  for (let i = 0; i < test.stages.length; i++) {
+    const s = test.stages[i]!
+    const next = test.stages[i + 1]
+
+    if (s.heart_rate === hr) return s.intensity
+
+    if (s.heart_rate != null && next?.heart_rate != null && s.heart_rate < hr && next.heart_rate > hr) {
+      return Math.round(linear_interpolation(s.intensity!, s.heart_rate, next.intensity!, next.heart_rate, hr))
+    }
+  }
+  return null
+}
+
 function find_stages_around_lactate(test: RampTest, lactate: number): Array<RampTestStage> {
   // TODO: edge cases
   for (let i = 0; i < test.stages.length; i++) {
-    if (test.stages[i]?.lactate === lactate) {
+    if (test.stages[i]!.lactate === lactate) {
       return [test.stages[i]!]
     }
 
-    if (test.stages[i]?.lactate < lactate && test.stages[i + 1]?.lactate > lactate) {
+    if ((test.stages[i]!.lactate ?? -Infinity) < lactate && (test.stages[i + 1]?.lactate ?? Infinity) > lactate) {
       return [test.stages[i]!, test.stages[i + 1]!]
     }
   }
+  return []
 }
 
 export function calculateThresholds(
@@ -144,12 +160,58 @@ export function calculateThresholds(
         lt2_intensity: lt2_intensity,
       }
     }
-    case ThresholdCalculationMethods.LOG_LOG_DMAX:
-      return {}
+    case ThresholdCalculationMethods.LOG_LOG_DMAX: {
+      const logX = test.stages.map(s => Math.log(s.intensity!))
+      const logY = test.stages.map(s => Math.log(s.lactate!))
+
+      const logCoef = polynomial_regression(logX, logY, polynomial_order)
+      const logCurve = discretizeN(Math.min(...logX), Math.max(...logX), logCoef)
+
+      const lt2_log = findDmaxThreshold(
+        [logX[0]!, logX[logX.length - 1]!],
+        [logY[0]!, logY[logY.length - 1]!],
+        logCurve.x,
+        logCurve.y,
+      )
+      const lt2_intensity = Math.round(Math.exp(lt2_log))
+
+      const lt1_intensity = findLogLogLT1(
+        test.stages.map(s => s.intensity!),
+        test.stages.map(s => s.lactate!),
+      )
+
+      return {
+        method: ThresholdCalculationMethods.LOG_LOG_DMAX,
+        lt1_intensity,
+        lt1_heart_rate: heart_rate_at_intensity(test, lt1_intensity),
+        lt2_intensity,
+        lt2_heart_rate: heart_rate_at_intensity(test, lt2_intensity),
+      }
+    }
     case ThresholdCalculationMethods.POLYNOMIAL_CURVE_FITTING:
-      return {}
-    case ThresholdCalculationMethods.HR_LACTATE_COUPLING:
-      return {}
+      return thresholds
+    case ThresholdCalculationMethods.HR_LACTATE_COUPLING: {
+      const hrs = test.stages.map(s => s.heart_rate!)
+      const lactates = test.stages.map(s => s.lactate!)
+
+      // LT2: piecewise linear breakpoint in HR-lactate space (the dramatic decoupling)
+      const lt2_hr = hrs[findPiecewiseBreakpointIndex(hrs, lactates)]!
+      const lt2_intensity = intensity_at_heart_rate(test, lt2_hr)
+
+      // LT1: piecewise linear breakpoint in log-log HR-lactate space (the earlier aerobic inflection)
+      const logHR = hrs.map(h => Math.log(h))
+      const logLac = lactates.map(l => Math.log(l))
+      const lt1_hr = hrs[findPiecewiseBreakpointIndex(logHR, logLac)]!
+      const lt1_intensity = intensity_at_heart_rate(test, lt1_hr)
+
+      return {
+        method: ThresholdCalculationMethods.HR_LACTATE_COUPLING,
+        lt1_intensity,
+        lt1_heart_rate: lt1_hr,
+        lt2_intensity,
+        lt2_heart_rate: lt2_hr,
+      }
+    }
     case ThresholdCalculationMethods.FIXED_LACTATE_THRESHOLDS:
       const lt1_lact = 2
       const lt2_lact = 4
@@ -157,44 +219,42 @@ export function calculateThresholds(
       const stages_lt1 = find_stages_around_lactate(test, lt1_lact)
 
       thresholds.lt1_heart_rate = linear_interpolation(
-        stages_lt1[0]?.heart_rate,
-        stages_lt1[0]?.lactate,
-        stages_lt1[1]?.heart_rate,
-        stages_lt1[1]?.lactate,
+        stages_lt1[0]?.heart_rate ?? 0,
+        stages_lt1[0]?.lactate ?? 0,
+        stages_lt1[1]?.heart_rate ?? 0,
+        stages_lt1[1]?.lactate ?? 0,
         lt1_lact,
       )
       thresholds.lt1_intensity = linear_interpolation(
-        stages_lt1[0]?.intensity,
-        stages_lt1[0]?.lactate,
-        stages_lt1[1]?.intensity,
-        stages_lt1[1]?.lactate,
+        stages_lt1[0]?.intensity ?? 0,
+        stages_lt1[0]?.lactate ?? 0,
+        stages_lt1[1]?.intensity ?? 0,
+        stages_lt1[1]?.lactate ?? 0,
         lt1_lact,
       )
 
       const stages_lt2 = find_stages_around_lactate(test, lt2_lact)
 
       thresholds.lt2_heart_rate = linear_interpolation(
-        stages_lt2[0]?.heart_rate,
-        stages_lt2[0]?.lactate,
-        stages_lt2[1]?.heart_rate,
-        stages_lt2[1]?.lactate,
+        stages_lt2[0]?.heart_rate ?? 0,
+        stages_lt2[0]?.lactate ?? 0,
+        stages_lt2[1]?.heart_rate ?? 0,
+        stages_lt2[1]?.lactate ?? 0,
         lt2_lact,
       )
       thresholds.lt2_intensity = linear_interpolation(
-        stages_lt2[0]?.intensity,
-        stages_lt2[0]?.lactate,
-        stages_lt2[1]?.intensity,
-        stages_lt2[1]?.lactate,
+        stages_lt2[0]?.intensity ?? 0,
+        stages_lt2[0]?.lactate ?? 0,
+        stages_lt2[1]?.intensity ?? 0,
+        stages_lt2[1]?.lactate ?? 0,
         lt2_lact,
       )
 
       return thresholds
     case ThresholdCalculationMethods.LOG_LOG_LT:
-      return {}
+      return thresholds
     case ThresholdCalculationMethods.BASELINE_0_5:
-      const baseline = test.stages[0]
-
-      return {}
+      return thresholds
     default:
       throw Error('Unkown calculation method')
   }
@@ -505,16 +565,52 @@ export function calculateZones(
 
 }
 
+export function calculateMAP(test: RampTest): number | null {
+  const fullStages = test.stages.filter(s => s.intensity != null && s.duration != null && s.duration >= 60)
+  if (fullStages.length === 0) return null
+  return Math.max(...fullStages.map(s => s.intensity!))
+}
+
+export function calculateVO2Max(
+  test: RampTest,
+  map: number | null,
+): { absolute: number; relative: number } | null {
+  if (map == null || test.weight == null) return null
+
+  let relative: number
+  if (test.sport === 'cycling') {
+    // Hawley & Noakes (1992) / ACSM cycling formula
+    relative = (10.8 * map) / test.weight + 7
+  } else {
+    // ACSM running formula: VO2 = 0.2 * speed_m/min + 3.5
+    relative = 0.2 * (map * 1000 / 60) + 3.5
+  }
+
+  return {
+    relative: Math.round(relative * 10) / 10,
+    absolute: Math.round((relative * test.weight / 1000) * 100) / 100,
+  }
+}
+
 export function calculateKeyMetrics(
   test: RampTest,
   method: ThresholdCalculationMethods,
 ): KeyMetrics {
+  const map = calculateMAP(test)
+  const vo2 = calculateVO2Max(test, map)
+
   return {
-    athlete_name: test.athlete_name,
-    athlete_weight: test.athlete_weight,
-    max_hr: Math.max(...test.stages.map((s) => s.heart_rate)),
+    athlete_name: test.name,
+    athlete_weight: test.weight,
+    max_hr: Math.max(...test.stages.map((s) => s.heart_rate ?? 0)),
     ftp: Math.round(0.75 * calculatePeakOneMinutePower(test)),
+    map,
+    ppo: null,
+    vo2_max_absolute: vo2?.absolute ?? null,
+    vo2_max_relative: vo2?.relative ?? null,
     thresholds: calculateThresholds(test, method),
+    power_zones: [],
+    heart_rate_zones: [],
   }
 }
 
@@ -526,11 +622,12 @@ export function calculatePeakOneMinutePower(test: RampTest): number {
   const stages = test.stages.filter(s => !!s.intensity && !!s.duration)
   let i = stages.length - 1;
   while (one_minute > 0 && i >= 0) {
-    if (stages[i]?.duration >= 60) {
-      return stages[i]?.intensity;
+    const stage = stages[i]!
+    if (stage.duration! >= 60) {
+      return stage.intensity!;
     }
-    const duration = stages[i]?.duration;
-    peak_power += stages[i]?.intensity * (duration / (60 - duration))
+    const duration = stage.duration!;
+    peak_power += stage.intensity! * (duration / (60 - duration))
 
     one_minute -= duration;
     i -= 1;

@@ -35,7 +35,7 @@ function updateAthleteSport(newSport: 'cycling' | 'running') {
 
 function updateStageField(stageIndex: number, field: keyof RampTestStage, value: any) {
   const newStages = [...props.modelValue.stages]
-  newStages[stageIndex] = { ...newStages[stageIndex], [field]: value }
+  newStages[stageIndex] = { ...newStages[stageIndex]!, [field]: value }
   emit('update:modelValue', {
     name: props.modelValue.name,
     weight: props.modelValue.weight,
@@ -89,7 +89,7 @@ function addStage() {
     <h2>Ramp Test Data</h2>
     <div class="flex justify-between pb-2">
 
-      <RadioGroup :model-value="props.modelValue.sport" @update:model-value="updateAthleteSport" class='flex pl-4'>
+      <RadioGroup :model-value="props.modelValue.sport" @update:model-value="(v) => updateAthleteSport(v as 'cycling' | 'running')" class='flex pl-4'>
         <div class="flex items-center space-x-2">
           <RadioGroupItem id="r1" value="cycling" />
           <Label for="r1" class='pl-2'>Cycling</Label>
@@ -140,15 +140,15 @@ function addStage() {
             <h3>{{ stage.num }}</h3>
           </TableCell>
           <TableCell><Input type="number" :placeholder="props.modelValue.sport === 'cycling' ? 'Power' : 'Speed'"
-              :model-value="stage.intensity" @update:model-value="updateStageField(index, 'intensity', $event)" />
+              :model-value="stage.intensity ?? undefined" @update:model-value="updateStageField(index, 'intensity', $event)" />
           </TableCell>
-          <TableCell><Input type="number" placeholder="Duration" :model-value="stage.duration"
+          <TableCell><Input type="number" placeholder="Duration" :model-value="stage.duration ?? undefined"
               @update:model-value="updateStageField(index, 'duration', $event)" />
           </TableCell>
-          <TableCell><Input type="number" placeholder="Lactate" :model-value="stage.lactate"
+          <TableCell><Input type="number" placeholder="Lactate" :model-value="stage.lactate ?? undefined"
               @update:model-value="updateStageField(index, 'lactate', $event)" />
           </TableCell>
-          <TableCell><Input type="number" placeholder="Heart Rate" :model-value="stage.heart_rate"
+          <TableCell><Input type="number" placeholder="Heart Rate" :model-value="stage.heart_rate ?? undefined"
               @update:model-value="updateStageField(index, 'heart_rate', $event)" />
           </TableCell>
           <TableCell class="table-cell">
