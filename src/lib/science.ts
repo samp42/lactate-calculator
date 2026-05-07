@@ -302,47 +302,53 @@ export function calculateZones(
   const max_hr = Math.max(...test.stages.map((s) => s.heart_rate ?? 0))
 
   // const ftp = Math.round(0.75 * calculatePeakOneMinutePower(test))
+  const lt1_hr = thresholds.lt1_heart_rate
+  const lt2_hr = thresholds.lt2_heart_rate
   const lt1 = thresholds.lt1_intensity
   const lt2 = thresholds.lt2_intensity
   const map = calculateMAP(test)
+
+  if (lt1_hr == null || lt2_hr == null || lt1 == null || lt2 == null || map == null) {
+    return { intensity_zones: [], heart_rate_zones: [] }
+  }
 
   const hr_zones: Array<TrainingZone> = [
     {
       number: 1,
       description: 'Recovery',
       min: null,
-      max: Math.round(0.85 * thresholds.lt1_heart_rate),
+      max: Math.round(0.85 * lt1_hr),
       min_percent: null,
       max_percent: '85% LT1 HR',
     },
     {
       number: 2,
       description: 'Endurance',
-      min: Math.round(0.85 * thresholds.lt1_heart_rate),
-      max: Math.round(thresholds.lt1_heart_rate),
+      min: Math.round(0.85 * lt1_hr),
+      max: Math.round(lt1_hr),
       min_percent: '85% LT1 HR',
       max_percent: 'LT1 HR',
     },
     {
       number: 3,
       description: 'Tempo / Sweet Spot',
-      min: Math.round(thresholds.lt1_heart_rate),
-      max: Math.round(0.95 * thresholds.lt2_heart_rate),
+      min: Math.round(lt1_hr),
+      max: Math.round(0.95 * lt2_hr),
       min_percent: 'LT1 HR',
       max_percent: '95% LT2 HR',
     },
     {
       number: 4,
       description: 'Threshold',
-      min: Math.round(0.95 * thresholds.lt2_heart_rate),
-      max: Math.round(1.02 * thresholds.lt2_heart_rate),
+      min: Math.round(0.95 * lt2_hr),
+      max: Math.round(1.02 * lt2_hr),
       min_percent: '95% LT2 HR',
       max_percent: '102% LT2 HR',
     },
     {
       number: 5,
       description: 'VO2 Max',
-      min: Math.round(1.02 * thresholds.lt2_heart_rate),
+      min: Math.round(1.02 * lt2_hr),
       max: max_hr,
       min_percent: '102% LT2 HR',
       max_percent: 'Max HR',
@@ -419,16 +425,17 @@ export function calculateMAP(test: RampTest): number | null {
   if (tests_length < 4) return null
 
   const stage_duration = test.stages[0]!.duration
+  if (stage_duration == null) return null
 
   if (test.stages[tests_length - 1]!.duration === stage_duration)
     return test.stages[tests_length - 1]!.intensity
 
-  const last_stage = test.stages[tests_length - 1]
-  const step_increase = last_stage!.intensity - test.stages[tests_length - 2]!.intensity
+  const last_stage = test.stages[tests_length - 1]!
+  const step_increase = last_stage.intensity! - test.stages[tests_length - 2]!.intensity!
 
   return (
-    test.stages[tests_length - 2]!.intensity +
-    (step_increase * last_stage?.duration) / stage_duration
+    test.stages[tests_length - 2]!.intensity! +
+    (step_increase * (last_stage.duration ?? 0)) / stage_duration
   )
 }
 
