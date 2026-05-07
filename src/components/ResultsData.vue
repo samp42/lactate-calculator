@@ -9,21 +9,22 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { ref, type Ref, computed, watch } from 'vue'
+import { ref, type Ref, computed, watch, nextTick } from 'vue'
 import ResultsTable from './ResultsTable.vue'
-import {
-  type RampTest,
-  type KeyMetrics,
-  ThresholdCalculationMethods,
-  ZoneModels,
-} from '@/lib/models'
+import { type RampTest, type KeyMetrics, ThresholdCalculationMethods } from '@/lib/models'
 import { DownloadIcon } from 'lucide-vue-next'
 import KeyMetricsTable from './KeyMetricsTable.vue'
 import DataPlot from './DataPlot.vue'
 import ZoneTable from './ZoneTable.vue'
-import { calculateThresholds, calculateZones, calculateMAP, calculateVO2Max } from '@/lib/science'
-import html2canvas from 'html2canvas'
-import jsPDF from 'jspdf'
+import {
+  calculateThresholds,
+  calculateZones,
+  calculateMAP,
+  calculateVO2Max,
+  calculateFTP,
+} from '@/lib/science'
+import html2canvas from 'html2canvas-pro'
+import { PDFDocument, rgb } from 'pdf-lib'
 
 const props = defineProps<{
   ramp_test: RampTest
@@ -33,7 +34,8 @@ function hasEnoughPoints(ramp_test: RampTest): boolean {
   // return true;
 
   return (
-    ramp_test.stages.filter((stage) => stage.intensity !== null && stage.lactate !== null).length >= 4
+    ramp_test.stages.filter((stage) => stage.intensity !== null && stage.lactate !== null).length >=
+    4
   )
 }
 
@@ -42,7 +44,10 @@ const key_metrics = computed<KeyMetrics>(() => {
     return {
       athlete_name: props.ramp_test.name,
       athlete_weight: props.ramp_test.weight,
-      max_hr: props.ramp_test.stages.length > 0 ? Math.max(...props.ramp_test.stages.map((s) => s.heart_rate ?? 0)) : null,
+      max_hr:
+        props.ramp_test.stages.length > 0
+          ? Math.max(...props.ramp_test.stages.map((s) => s.heart_rate ?? 0))
+          : null,
       ftp: null,
       map: null,
       ppo: null,
@@ -61,7 +66,7 @@ const key_metrics = computed<KeyMetrics>(() => {
   }
 
   const thresholds = calculateThresholds(props.ramp_test, selected_method.value)
-  const zones = calculateZones(props.ramp_test, thresholds, selected_zone_model.value)
+  const zones = calculateZones(props.ramp_test, thresholds)
 
   const map = calculateMAP(props.ramp_test)
   const vo2_max = calculateVO2Max(props.ramp_test, map)
@@ -74,7 +79,7 @@ const key_metrics = computed<KeyMetrics>(() => {
     athlete_name: props.ramp_test.name,
     athlete_weight: props.ramp_test.weight,
     max_hr: Math.max(...props.ramp_test.stages.map((s) => s.heart_rate ?? 0)),
-    ftp: null,
+    ftp: calculateFTP(props.ramp_test),
     map: map,
     ppo: null,
     vo2_max_absolute: vo2_max?.absolute ?? null,
@@ -86,7 +91,6 @@ const key_metrics = computed<KeyMetrics>(() => {
 })
 
 const selected_method: Ref<ThresholdCalculationMethods> = ref(ThresholdCalculationMethods.DMAX)
-const selected_zone_model: Ref<ZoneModels> = ref(ZoneModels.FIVE_ZONES)
 
 const resultsContainer = ref<HTMLElement | null>(null)
 const isDownloading = ref(false)
@@ -95,25 +99,65 @@ async function downloadPDF() {
   if (!resultsContainer.value) return
   isDownloading.value = true
 
-  await new Promise((r) => setTimeout(r, 50))
+  try {
+    await nextTick()
 
-  const canvas = await html2canvas(resultsContainer.value, {
-    scale: 2,
-    useCORS: true,
-    backgroundColor: '#ffffff',
-    logging: false,
-  })
+    const excluded = Array.from(document.querySelectorAll<HTMLElement>('.pdf-exclude'))
+    excluded.forEach((el) => (el.style.visibility = 'hidden'))
 
-  const imgW = canvas.width
-  const imgH = canvas.height
-  const pdf = new jsPDF({ orientation: 'portrait', unit: 'px', format: [imgW / 2, imgH / 2] })
-  pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, imgW / 2, imgH / 2)
+    const canvas = await html2canvas(resultsContainer.value, {
+      scale: 2,
+      useCORS: true,
+      allowTaint: true,
+      backgroundColor: '#ffffff',
+      logging: false,
+    })
 
-  const name = props.ramp_test.name?.toUpperCase().replace(/\s+/g, '_') ?? 'ramp_test'
-  const date = new Date().toISOString().slice(0, 10)
-  pdf.save(`${name}_${date}.pdf`)
+    excluded.forEach((el) => (el.style.visibility = ''))
 
-  isDownloading.value = false
+    const jpegBytes = await new Promise<ArrayBuffer>((resolve, reject) =>
+      canvas.toBlob(
+        (b) => (b ? b.arrayBuffer().then(resolve) : reject(new Error('toBlob failed'))),
+        'image/jpeg',
+        0.95,
+      ),
+    )
+
+    const pdfDoc = await PDFDocument.create()
+    const jpegImage = await pdfDoc.embedJpg(jpegBytes)
+    const pageW = canvas.width / 2
+    const pageH = canvas.height / 2
+    const page = pdfDoc.addPage([pageW, pageH])
+    page.drawImage(jpegImage, { x: 0, y: 0, width: pageW, height: pageH })
+    page.drawRectangle({
+      x: 0,
+      y: 0,
+      width: pageW,
+      height: pageH,
+      borderColor: rgb(0, 0, 0),
+      borderWidth: 1,
+      color: undefined,
+    })
+
+    const name = props.ramp_test.name?.toUpperCase().replace(/\s+/g, '_')
+    const date = new Date().toISOString().slice(0, 10)
+    const filename = name ? `${name}_ramp_test_${date}.pdf` : `$ramp_test_${date}.pdf`
+
+    const pdfBytes = await pdfDoc.save()
+    const blob = new Blob([pdfBytes.buffer as ArrayBuffer], { type: 'application/pdf' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = filename
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
+  } catch (e) {
+    console.error('PDF download failed:', e)
+  } finally {
+    isDownloading.value = false
+  }
 }
 </script>
 
@@ -121,10 +165,15 @@ async function downloadPDF() {
   <div v-if="hasEnoughPoints(ramp_test)">
     <div class="flex justify-between pb-1">
       <h2>Ramp Test Results</h2>
-      <!-- <Button class="flex align-bottom" variant='outline' :disabled="isDownloading" @click="downloadPDF">
+      <Button
+        class="flex align-bottom"
+        variant="outline"
+        :disabled="isDownloading"
+        @click="downloadPDF"
+      >
         <DownloadIcon />
         <h3 class="pl-2">{{ isDownloading ? 'Downloading...' : 'Download Results' }}</h3>
-      </Button> -->
+      </Button>
     </div>
     <div ref="resultsContainer">
       <ResultsTable :ramp_test="ramp_test" class="pb-8" />
@@ -173,45 +222,37 @@ async function downloadPDF() {
         </div>
         <div class="mt-6">
           <!-- <DataCurve :ramp_test="ramp_test" /> -->
-          <DataPlot :ramp_test='ramp_test' :key_metrics='key_metrics' />
+          <DataPlot :ramp_test="ramp_test" :key_metrics="key_metrics" />
         </div>
       </div>
       <div class="flex w-full justify-between pb-1">
         <h2>Zones</h2>
-        <Select v-model="selected_zone_model">
-          <SelectTrigger class="w-60">
-            <SelectValue placeholder="Zone model" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectGroup>
-              <SelectLabel>Models</SelectLabel>
-              <!-- <SelectItem :value="ZoneModels.THREE_ZONES">
-              {{ ZoneModels.THREE_ZONES }}
-            </SelectItem> -->
-              <SelectItem :value="ZoneModels.FIVE_ZONES">
-                {{ ZoneModels.FIVE_ZONES }}
-              </SelectItem>
-              <SelectItem :value="ZoneModels.SEVEN_ZONES">
-                {{ ZoneModels.SEVEN_ZONES }}
-              </SelectItem>
-            </SelectGroup>
-          </SelectContent>
-        </Select>
       </div>
-      <div class="flex w-full justify-between pb-8">
-        <ZoneTable type="power" :sport="ramp_test.sport" :zones="key_metrics.power_zones" class="flex-1" />
-        <div style="width: 12px"></div>
-        <ZoneTable type="heart_rate" :sport="ramp_test.sport" :zones="key_metrics.heart_rate_zones" class="flex-1" />
+      <div class="pb-8">
+        <ZoneTable
+          type="power"
+          v-if="ramp_test.sport === 'cycling'"
+          :sport="ramp_test.sport"
+          :zones="key_metrics.power_zones"
+          class="flex-1"
+        />
+        <div style="height: 12px"></div>
+        <ZoneTable
+          type="heart_rate"
+          :sport="ramp_test.sport"
+          :zones="key_metrics.heart_rate_zones"
+          class="flex-1"
+        />
       </div>
 
       <h2>Calculated Data</h2>
       <KeyMetricsTable :sport="ramp_test.sport" :key_metrics="key_metrics" />
     </div>
-
   </div>
   <div v-else class="flex justify-center">
     <p class="font-black text-center" style="font-size: x-large; font-weight: bold">
-      Not enough {{ ramp_test.sport === 'cycling' ? 'power' : 'speed' }} & lactate points.<br />At least 4 are needed.
+      Not enough {{ ramp_test.sport === 'cycling' ? 'power' : 'speed' }} & lactate points.<br />At
+      least 4 are needed.
     </p>
   </div>
 </template>

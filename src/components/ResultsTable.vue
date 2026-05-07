@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { DownloadIcon } from 'lucide-vue-next';
-import { Button } from './ui/button';
+import { DownloadIcon } from 'lucide-vue-next'
+import { Button } from './ui/button'
 import { Card, CardHeader, CardContent } from './ui/card'
 
 import {
@@ -19,27 +19,29 @@ const props = defineProps<{
 }>()
 
 function exportCSV() {
-  const headers = Object.keys(props.ramp_test.stages[0]!);
-  const rows = props.ramp_test.stages.map(row =>
-    headers.map(h => {
-      const val = String((row as unknown as Record<string, unknown>)[h] ?? "");
-      // Wrap in quotes if value contains comma, quote, or newline
-      return /[",\n]/.test(val) ? `"${val.replace(/"/g, '""')}"` : val;
-    }).join(",")
-  );
+  const headers = Object.keys(props.ramp_test.stages[0]!)
+  const rows = props.ramp_test.stages.map((row) =>
+    headers
+      .map((h) => {
+        const val = String((row as unknown as Record<string, unknown>)[h] ?? '')
+        // Wrap in quotes if value contains comma, quote, or newline
+        return /[",\n]/.test(val) ? `"${val.replace(/"/g, '""')}"` : val
+      })
+      .join(','),
+  )
 
-  const csv = [headers.join(","), ...rows].join("\n");
-  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-  const url = URL.createObjectURL(blob);
+  const csv = [headers.join(','), ...rows].join('\n')
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
+  const url = URL.createObjectURL(blob)
   const date = new Date().toISOString().slice(0, 10)
   const filename = `${props.ramp_test.name?.toUpperCase() ?? 'ramp_test'}_${date}.csv`
 
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = filename;
-  link.click();
+  const link = document.createElement('a')
+  link.href = url
+  link.download = filename
+  link.click()
 
-  URL.revokeObjectURL(url);
+  URL.revokeObjectURL(url)
 }
 </script>
 
@@ -47,9 +49,9 @@ function exportCSV() {
   <div>
     <Card>
       <CardHeader>
-        <div class='flex justify-between'>
+        <div class="flex justify-between">
           <h2>Ramp Test Results</h2>
-          <Button class="flex align-bottom" variant='outline' @click='exportCSV'>
+          <Button class="flex align-bottom pdf-exclude" variant="outline" @click="exportCSV">
             <DownloadIcon />
             <h3 class="pl-2">Export CSV</h3>
           </Button>
@@ -57,7 +59,8 @@ function exportCSV() {
       </CardHeader>
       <CardContent>
         <Table>
-          <TableCaption>Ramp Test Results
+          <TableCaption
+            >Ramp Test Results
             {{ props.ramp_test.name !== null ? 'for ' + props.ramp_test.name : '' }}
           </TableCaption>
           <TableHeader>

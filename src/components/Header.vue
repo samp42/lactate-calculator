@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import { MoonIcon, SunIcon } from 'lucide-vue-next';
-import { ref } from 'vue';
+import { MoonIcon, SunIcon } from 'lucide-vue-next'
+import { ref } from 'vue'
 
-const theme = ref('dark');
+const theme = ref('dark')
 
 function toggleTheme() {
-  theme.value = theme.value === 'light' ? 'dark' : 'light';
+  theme.value = theme.value === 'light' ? 'dark' : 'light'
 }
 </script>
 

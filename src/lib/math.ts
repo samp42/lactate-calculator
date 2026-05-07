@@ -1,7 +1,13 @@
 // find x for given y
-export function linear_interpolation(x1: number, y1: number, x2: number, y2: number, y: number): number {
+export function linear_interpolation(
+  x1: number,
+  y1: number,
+  x2: number,
+  y2: number,
+  y: number,
+): number {
   const slope = (y2 - y1) / (x2 - x1)
-  const intercept = (y1 - slope * x1)
+  const intercept = y1 - slope * x1
 
   return (y - intercept) / slope
 }
@@ -213,8 +219,9 @@ export function findPiecewiseBreakpointIndex(x: number[], y: number[]): number {
   let breakIdx = 1
 
   for (let split = 1; split < n - 1; split++) {
-    const ssr = linearSSR(x.slice(0, split + 1), y.slice(0, split + 1))
-      + linearSSR(x.slice(split), y.slice(split))
+    const ssr =
+      linearSSR(x.slice(0, split + 1), y.slice(0, split + 1)) +
+      linearSSR(x.slice(split), y.slice(split))
     if (ssr < minSSR) {
       minSSR = ssr
       breakIdx = split
@@ -226,8 +233,8 @@ export function findPiecewiseBreakpointIndex(x: number[], y: number[]): number {
 
 // Piecewise linear regression in log-log space to find LT1 breakpoint
 export function findLogLogLT1(intensities: number[], lactates: number[]): number {
-  const logX = intensities.map(x => Math.log(x))
-  const logY = lactates.map(y => Math.log(y))
+  const logX = intensities.map((x) => Math.log(x))
+  const logY = lactates.map((y) => Math.log(y))
   return intensities[findPiecewiseBreakpointIndex(logX, logY)]!
 }
 
@@ -239,7 +246,9 @@ export function discretizeN(
 ): { x: number[]; y: number[] } {
   const step = (x_max - x_min) / (n - 1)
   const x: number[] = Array.from({ length: n }, (_, i) => x_min + i * step)
-  const y: number[] = x.map((val) => coef.reduce((sum, coeff, i) => sum + coeff * Math.pow(val, i), 0))
+  const y: number[] = x.map((val) =>
+    coef.reduce((sum, coeff, i) => sum + coeff * Math.pow(val, i), 0),
+  )
   return { x, y }
 }
 
@@ -247,39 +256,39 @@ export function findDmaxThreshold(
   lineX: number[],
   lineY: number[],
   polyX: number[],
-  polyY: number[]
+  polyY: number[],
 ): number {
   // Line is defined by its first and last points
-  const x1 = lineX[0]!;
-  const y1 = lineY[0]!;
-  const x2 = lineX[lineX.length - 1]!;
-  const y2 = lineY[lineY.length - 1]!;
+  const x1 = lineX[0]!
+  const y1 = lineY[0]!
+  const x2 = lineX[lineX.length - 1]!
+  const y2 = lineY[lineY.length - 1]!
 
   // Coefficients for the line equation: ax + by + c = 0
-  const a = y2 - y1;
-  const b = x1 - x2;
-  const c = x2 * y1 - x1 * y2;
-  const denom = Math.sqrt(a * a + b * b);
+  const a = y2 - y1
+  const b = x1 - x2
+  const c = x2 * y1 - x1 * y2
+  const denom = Math.sqrt(a * a + b * b)
 
   if (denom === 0) {
-    throw new Error("Line endpoints are identical — cannot define a line.");
+    throw new Error('Line endpoints are identical — cannot define a line.')
   }
 
-  let maxDistance = -Infinity;
-  let thresholdX = polyX[0]!;
+  let maxDistance = -Infinity
+  let thresholdX = polyX[0]!
 
   for (let i = 0; i < polyX.length; i++) {
-    const px = polyX[i]!;
-    const py = polyY[i]!;
+    const px = polyX[i]!
+    const py = polyY[i]!
 
     // Perpendicular distance from point (px, py) to the line ax + by + c = 0
-    const distance = Math.abs(a * px + b * py + c) / denom;
+    const distance = Math.abs(a * px + b * py + c) / denom
 
     if (distance > maxDistance) {
-      maxDistance = distance;
-      thresholdX = px;
+      maxDistance = distance
+      thresholdX = px
     }
   }
 
-  return thresholdX;
+  return thresholdX
 }

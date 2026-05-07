@@ -34,7 +34,7 @@ const ltLines = computed(() => {
       y0: 0,
       y1: 1,
       yref: 'paper',
-      line: { color: '#10b981', width: 2, dash: 'dash' }
+      line: { color: '#10b981', width: 2, dash: 'dash' },
     })
     annotations.push({
       x: props.key_metrics.thresholds.lt1_intensity,
@@ -43,7 +43,7 @@ const ltLines = computed(() => {
       yref: 'paper',
       text: 'LT1',
       showarrow: false,
-      font: { color: '#10b981', size: 13 }
+      font: { color: '#10b981', size: 13 },
     })
   }
 
@@ -55,7 +55,7 @@ const ltLines = computed(() => {
       y0: 0,
       y1: 1,
       yref: 'paper',
-      line: { color: '#f59e0b', width: 2, dash: 'dashdot' }
+      line: { color: '#f59e0b', width: 2, dash: 'dashdot' },
     })
     annotations.push({
       x: props.key_metrics.thresholds.lt2_intensity,
@@ -64,7 +64,7 @@ const ltLines = computed(() => {
       yref: 'paper',
       text: 'LT2',
       showarrow: false,
-      font: { color: '#f59e0b', size: 13 }
+      font: { color: '#f59e0b', size: 13 },
     })
   }
 
@@ -89,7 +89,7 @@ const renderPlot = () => {
       name: 'Lactate',
       line: { shape: 'spline', color: '#2563eb', width: 3 },
       marker: { size: 8, color: '#2563eb' },
-      hovertemplate: 'Power: %{x} W<br>Lactate: %{y} mmol/L<extra></extra>'
+      hovertemplate: 'Power: %{x} W<br>Lactate: %{y} mmol/L<extra></extra>',
     },
     {
       x: powerValues,
@@ -100,8 +100,8 @@ const renderPlot = () => {
       yaxis: 'y2',
       line: { shape: 'spline', dash: 'dot', color: '#ef4444', width: 3 },
       marker: { size: 8, color: '#ef4444' },
-      hovertemplate: 'Power: %{x} W<br>Heart Rate: %{y} bpm<extra></extra>'
-    }
+      hovertemplate: 'Power: %{x} W<br>Heart Rate: %{y} bpm<extra></extra>',
+    },
   ]
 
   const layout = {
@@ -110,27 +110,27 @@ const renderPlot = () => {
       title: 'Power (W)',
       zeroline: false,
       showgrid: true,
-      gridcolor: '#e2e8f0'
+      gridcolor: '#e2e8f0',
     },
     yaxis: {
       title: 'Lactate (mmol/L)',
       zeroline: false,
       showgrid: true,
-      gridcolor: '#e2e8f0'
+      gridcolor: '#e2e8f0',
     },
     yaxis2: {
       title: 'Heart Rate (BPM)',
       overlaying: 'y',
       side: 'right',
       zeroline: false,
-      showgrid: false
+      showgrid: false,
     },
     legend: { orientation: 'h', y: -0.2, x: 0, xanchor: 'left' },
     margin: { l: 60, r: 70, t: 60, b: 60 },
     hovermode: 'x unified',
     shapes: ltLines.value.shapes,
     annotations: ltLines.value.annotations,
-    template: 'plotly_white'
+    template: 'plotly_white',
   }
 
   Plotly.react(plotDiv.value, traces, layout, { responsive: true })
@@ -138,9 +138,5 @@ const renderPlot = () => {
 
 onMounted(renderPlot)
 
-watch(
-  () => [props.ramp_test.stages, props.key_metrics.thresholds],
-  renderPlot,
-  { deep: true }
-)
+watch(() => [props.ramp_test.stages, props.key_metrics.thresholds], renderPlot, { deep: true })
 </script>

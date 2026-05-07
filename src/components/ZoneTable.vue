@@ -24,16 +24,50 @@ function formatPace(speed: number | null): string {
   const [min, sec] = speedToPace(speed)
   return `${min}:${String(sec).padStart(2, '0')}`
 }
+
+function displayZone(zone: TrainingZone): string {
+  if (zone.min === null) {
+    return `< ${zone.max}`
+  }
+
+  if (zone.max === null) {
+    return `> ${zone.min}`
+  }
+
+  return `${zone.min} - ${zone.max}`
+}
+
+function displayZonePercent(zone: TrainingZone): string {
+  if (zone.min === null) {
+    return `< ${zone.max_percent}`
+  }
+
+  if (zone.max === null) {
+    return `> ${zone.min_percent}`
+  }
+
+  return `${zone.min_percent} - ${zone.max_percent}`
+}
 </script>
 
 <template>
   <Card>
     <CardHeader>
-      <h2>{{ props.type === 'power' ? (props.sport === 'running' ? 'Pace' : 'Power') : 'Heart Rate' }} Zones</h2>
+      <h2>
+        {{
+          props.type === 'power' ? (props.sport === 'running' ? 'Pace' : 'Power') : 'Heart Rate'
+        }}
+        Zones
+      </h2>
     </CardHeader>
     <CardContent>
       <Table>
-        <TableCaption>{{ props.type === 'power' ? (props.sport === 'running' ? 'Pace' : 'Power') : 'Heart Rate' }} Zones</TableCaption>
+        <TableCaption
+          >{{
+            props.type === 'power' ? (props.sport === 'running' ? 'Pace' : 'Power') : 'Heart Rate'
+          }}
+          Zones
+        </TableCaption>
         <TableHeader>
           <TableHead>Zone</TableHead>
           <TableHead>Description</TableHead>
@@ -48,10 +82,9 @@ function formatPace(speed: number | null): string {
               {{ formatPace(zone.max) }} - {{ formatPace(zone.min) }} /km
             </TableCell>
             <TableCell v-else>
-              {{ zone.min }} - {{ zone.max === Infinity ? '∞' : zone.max }} {{ props.type === 'power' ? 'W' : 'BPM' }}
+              {{ displayZone(zone) }} {{ props.type === 'power' ? 'W' : 'BPM' }}
             </TableCell>
-            <TableCell>{{ zone.min_percent }} - {{ zone.max_percent === Infinity ? '∞' : zone.max_percent }} %
-            </TableCell>
+            <TableCell>{{ displayZonePercent(zone) }} </TableCell>
           </TableRow>
         </TableBody>
       </Table>
