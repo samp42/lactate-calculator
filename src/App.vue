@@ -4,7 +4,6 @@ import InfoContent from '@/components/InfoContent.vue'
 import Header from './components/Header.vue'
 import RampTestInput from './components/RampTestInput.vue'
 import { ref, watch, type Ref } from 'vue'
-import { Button } from '@/components/ui/button'
 import type { RampTest } from '@/lib/models'
 import ResultsData from './components/ResultsData.vue'
 import AthleteDataInput from './components/AthleteDataInput.vue'
@@ -14,31 +13,10 @@ const ramp_test: Ref<RampTest> = ref({
   name: null,
   weight: null,
   sport: 'cycling',
-  stages: getFirstEmptyStage(),
+  stages: getFictiveStages(),
 })
 
-// function addStage() {
-//   if (ramp_test.value.stages.length > 0) {
-//     const lastStage = ramp_test.value.stages[ramp_test.value.stages.length - 1]
-
-//     ramp_test.value.stages = [
-//       ...ramp_test.value.stages,
-//       {
-//         num: lastStage!.num + 1,
-//         intensity: null,
-//         duration: lastStage!.duration,
-//         lactate: null,
-//         heart_rate: null,
-//       },
-//     ]
-//   } else {
-//     ramp_test.value.stages = getFirstEmptyStage()
-//   }
-// }
-
 watch(ramp_test, () => console.log(JSON.stringify(ramp_test.value)))
-
-// const addStageRef = ref(null)
 </script>
 
 <template>
@@ -57,7 +35,6 @@ watch(ramp_test, () => console.log(JSON.stringify(ramp_test.value)))
             </TabsTrigger>
           </TabsList>
           <TabsContent value="data-input" style="margin-top: 24px">
-            <!-- <RampDataInput /> -->
             <div class="pb-8">
               <AthleteDataInput :modelValue="ramp_test" @update:modelValue="ramp_test = $event" />
             </div>

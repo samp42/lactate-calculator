@@ -64,25 +64,24 @@ function formatIntensity(intensity: number | null): string {
             </TableCell>
             <TableCell class="table-cell">{{
               formatIntensity(props.key_metrics.thresholds.lt1_intensity)
-            }}</TableCell>
+              }}</TableCell>
           </TableRow>
           <TableRow>
             <TableCell>
               <h3>LT1 Heart Rate</h3>
             </TableCell>
-            <TableCell class="table-cell"
-              >{{
-                props.key_metrics.thresholds.lt1_heart_rate != null
-                  ? Math.round(props.key_metrics.thresholds.lt1_heart_rate) + ' BPM'
-                  : '—'
-              }}{{
+            <TableCell class="table-cell">{{
+              props.key_metrics.thresholds.lt1_heart_rate != null
+                ? Math.round(props.key_metrics.thresholds.lt1_heart_rate) + ' BPM'
+                : '—'
+            }}{{
                 getPercentage(props.key_metrics.thresholds.lt1_heart_rate, props.key_metrics.max_hr)
                   ? ' - ' +
-                    getPercentage(
-                      props.key_metrics.thresholds.lt1_heart_rate,
-                      props.key_metrics.max_hr,
-                    ) +
-                    '%'
+                  getPercentage(
+                    props.key_metrics.thresholds.lt1_heart_rate,
+                    props.key_metrics.max_hr,
+                  ) +
+                  '%'
                   : ''
               }}
             </TableCell>
@@ -93,42 +92,41 @@ function formatIntensity(intensity: number | null): string {
             </TableCell>
             <TableCell class="table-cell">{{
               formatIntensity(props.key_metrics.thresholds.lt2_intensity)
-            }}</TableCell>
+              }}</TableCell>
           </TableRow>
           <TableRow>
             <TableCell>
               <h3>LT2 Heart Rate</h3>
             </TableCell>
-            <TableCell class="table-cell"
-              >{{
-                props.key_metrics.thresholds.lt2_heart_rate != null
-                  ? Math.round(props.key_metrics.thresholds.lt2_heart_rate) + ' BPM'
-                  : '—'
-              }}{{
+            <TableCell class="table-cell">{{
+              props.key_metrics.thresholds.lt2_heart_rate != null
+                ? Math.round(props.key_metrics.thresholds.lt2_heart_rate) + ' BPM'
+                : '—'
+            }}{{
                 getPercentage(props.key_metrics.thresholds.lt2_heart_rate, props.key_metrics.max_hr)
                   ? ' - ' +
-                    getPercentage(
-                      props.key_metrics.thresholds.lt2_heart_rate,
-                      props.key_metrics.max_hr,
-                    ) +
-                    '%'
+                  getPercentage(
+                    props.key_metrics.thresholds.lt2_heart_rate,
+                    props.key_metrics.max_hr,
+                  ) +
+                  '%'
                   : ''
               }}
             </TableCell>
           </TableRow>
           <template v-if="props.sport === 'cycling'">
-            <TableRow v-if="props.key_metrics.ppo">
+            <!-- <TableRow v-if="props.key_metrics.ppo">
               <TableCell>
                 <h3>Peak One-Minute Power</h3>
               </TableCell>
               <TableCell class="table-cell">{{ props.key_metrics.ppo }} W</TableCell>
-            </TableRow>
-            <TableRow>
+            </TableRow> -->
+            <!-- <TableRow v-if="props.key_metrics.ftp">
               <TableCell>
                 <h3>Functional Threshold Power</h3>
               </TableCell>
               <TableCell class="table-cell">{{ props.key_metrics.ftp }} W</TableCell>
-            </TableRow>
+            </TableRow> -->
             <TableRow v-if="props.key_metrics.map != null">
               <TableCell>
                 <h3>Maximal Aerobic Power</h3>
@@ -146,9 +144,7 @@ function formatIntensity(intensity: number | null): string {
             <TableCell>
               <h3>VO2 Max (Relative)</h3>
             </TableCell>
-            <TableCell class="table-cell"
-              >{{ props.key_metrics.vo2_max_relative }} mL/kg/min</TableCell
-            >
+            <TableCell class="table-cell">{{ props.key_metrics.vo2_max_relative }} mL/kg/min</TableCell>
           </TableRow>
           <TableRow v-if="props.key_metrics.vo2_max_absolute != null">
             <TableCell>

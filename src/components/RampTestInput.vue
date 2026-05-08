@@ -12,7 +12,7 @@ import { Input } from './ui/input'
 import { Button } from './ui/button'
 import { Label } from './ui/label'
 import { RadioGroup, RadioGroupItem } from './ui/radio-group'
-import { PlusIcon, XIcon, TrashIcon } from 'lucide-vue-next'
+import { PlusIcon, XIcon, TrashIcon, UploadIcon } from 'lucide-vue-next'
 import type { RampTest, RampTestStage } from '@/lib/models'
 import { getFirstEmptyStage } from '@/lib/models'
 
@@ -88,11 +88,8 @@ function addStage() {
   <div>
     <h2>Ramp Test Data</h2>
     <div class="flex justify-between pb-2">
-      <RadioGroup
-        :model-value="props.modelValue.sport"
-        @update:model-value="(v) => updateAthleteSport(v as 'cycling' | 'running')"
-        class="flex pl-4"
-      >
+      <RadioGroup :model-value="props.modelValue.sport"
+        @update:model-value="(v) => updateAthleteSport(v as 'cycling' | 'running')" class="flex pl-4">
         <div class="flex items-center space-x-2">
           <RadioGroupItem id="r1" value="cycling" />
           <Label for="r1" class="pl-2">Cycling</Label>
@@ -103,6 +100,10 @@ function addStage() {
         </div>
       </RadioGroup>
       <div class="flex">
+        <Button variant='outline' style="margin-right: 8px">
+          <UploadIcon />
+          <h3 class='pr-2'>Import CSV</h3>
+        </Button>
         <Button @click="clearTest" class="flex" variant="destructive" style="margin-right: 8px">
           <TrashIcon />
           <h3 class="pr-2">Clear All</h3>
@@ -144,37 +145,18 @@ function addStage() {
           <TableCell class="table-cell">
             <h3>{{ stage.num }}</h3>
           </TableCell>
-          <TableCell
-            ><Input
-              type="number"
-              :placeholder="props.modelValue.sport === 'cycling' ? 'Power' : 'Speed'"
+          <TableCell><Input type="number" :placeholder="props.modelValue.sport === 'cycling' ? 'Power' : 'Speed'"
               :model-value="stage.intensity ?? undefined"
-              @update:model-value="updateStageField(index, 'intensity', $event)"
-            />
+              @update:model-value="updateStageField(index, 'intensity', $event)" />
           </TableCell>
-          <TableCell
-            ><Input
-              type="number"
-              placeholder="Duration"
-              :model-value="stage.duration ?? undefined"
-              @update:model-value="updateStageField(index, 'duration', $event)"
-            />
+          <TableCell><Input type="number" placeholder="Duration" :model-value="stage.duration ?? undefined"
+              @update:model-value="updateStageField(index, 'duration', $event)" />
           </TableCell>
-          <TableCell
-            ><Input
-              type="number"
-              placeholder="Lactate"
-              :model-value="stage.lactate ?? undefined"
-              @update:model-value="updateStageField(index, 'lactate', $event)"
-            />
+          <TableCell><Input type="number" placeholder="Lactate" :model-value="stage.lactate ?? undefined"
+              @update:model-value="updateStageField(index, 'lactate', $event)" />
           </TableCell>
-          <TableCell
-            ><Input
-              type="number"
-              placeholder="Heart Rate"
-              :model-value="stage.heart_rate ?? undefined"
-              @update:model-value="updateStageField(index, 'heart_rate', $event)"
-            />
+          <TableCell><Input type="number" placeholder="Heart Rate" :model-value="stage.heart_rate ?? undefined"
+              @update:model-value="updateStageField(index, 'heart_rate', $event)" />
           </TableCell>
           <TableCell class="table-cell">
             <Button @click="deleteStage(index)" variant="outline">
