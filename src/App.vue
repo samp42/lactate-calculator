@@ -38,7 +38,11 @@ watch(ramp_test, () => console.log(JSON.stringify(ramp_test.value)))
             <div class="pb-8">
               <AthleteDataInput :modelValue="ramp_test" @update:modelValue="ramp_test = $event" />
             </div>
-            <RampTestInput :modelValue="ramp_test" @update:modelValue="ramp_test = $event" ref="addStageRef" />
+            <RampTestInput
+              :modelValue="ramp_test"
+              @update:modelValue="ramp_test = $event"
+              ref="addStageRef"
+            />
           </TabsContent>
           <TabsContent value="results" style="margin-top: 24px">
             <div>

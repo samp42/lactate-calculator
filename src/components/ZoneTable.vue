@@ -54,9 +54,7 @@ function displayZonePercent(zone: TrainingZone): string {
   <Card>
     <CardHeader>
       <h2>
-        {{
-          props.type === 'power' ? (props.sport === 'running' ? 'Pace' : 'Power') : 'Heart Rate'
-        }}
+        {{ props.type === 'power' ? (props.sport === 'running' ? 'Pace' : 'Power') : 'Heart Rate' }}
         Zones
       </h2>
     </CardHeader>
