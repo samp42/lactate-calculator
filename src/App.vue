@@ -13,7 +13,7 @@ const ramp_test: Ref<RampTest> = ref({
   name: null,
   weight: null,
   sport: 'cycling',
-  stages: getFictiveStages(),
+  stages: getFirstEmptyStage(),
 })
 
 watch(ramp_test, () => console.log(JSON.stringify(ramp_test.value)))

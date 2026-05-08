@@ -13,6 +13,7 @@ import { Button } from './ui/button'
 import { Label } from './ui/label'
 import { RadioGroup, RadioGroupItem } from './ui/radio-group'
 import { PlusIcon, XIcon, TrashIcon, UploadIcon } from 'lucide-vue-next'
+import { ref } from 'vue'
 import type { RampTest, RampTestStage } from '@/lib/models'
 import { getFirstEmptyStage } from '@/lib/models'
 
@@ -63,6 +64,44 @@ function clearTest() {
   })
 }
 
+const fileInput = ref<HTMLInputElement | null>(null)
+
+function importCSV() {
+  fileInput.value?.click()
+}
+
+function onFileSelected(event: Event) {
+  const file = (event.target as HTMLInputElement).files?.[0]
+  if (!file) return
+
+  const reader = new FileReader()
+  reader.onload = (e) => {
+    const text = e.target?.result as string
+    const lines = text.trim().split('\n')
+    if (lines.length < 2) return
+
+    const headers = lines[0]!.split(',')
+    const stages: RampTestStage[] = lines.slice(1).map((line) => {
+      const values = line.split(',')
+      const row: Record<string, string> = {}
+      headers.forEach((h, i) => (row[h.trim()] = (values[i] ?? '').trim()))
+      const parseNum = (v: string) => (v === '' ? null : Number(v))
+      return {
+        num: Number(row['num']),
+        intensity: parseNum(row['intensity'] ?? ''),
+        duration: parseNum(row['duration'] ?? ''),
+        lactate: parseNum(row['lactate'] ?? ''),
+        heart_rate: parseNum(row['heart_rate'] ?? ''),
+      }
+    })
+
+    emit('update:modelValue', { ...props.modelValue, stages })
+    // Reset so the same file can be re-imported
+    if (fileInput.value) fileInput.value.value = ''
+  }
+  reader.readAsText(file)
+}
+
 function addStage() {
   let newStages = [...props.modelValue.stages]
   if (newStages.length > 0) {
@@ -100,7 +139,8 @@ function addStage() {
         </div>
       </RadioGroup>
       <div class="flex">
-        <Button variant='outline' style="margin-right: 8px">
+        <input ref="fileInput" type="file" accept=".csv" class="hidden" @change="onFileSelected" />
+        <Button variant='outline' style="margin-right: 8px" @click="importCSV">
           <UploadIcon />
           <h3 class='pr-2'>Import CSV</h3>
         </Button>
